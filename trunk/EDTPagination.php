@@ -2,9 +2,9 @@
 /**
  * EDTPagination class file.
  *
- * @author Jan Was <jwas@nets.com.pl>
+ * @author Jan Was <janek.jan@gmail.com>
  * @link http://www.yiiframework.com/
- * @copyright Copyright &copy; 2011-2012 NET Sp. z o. o.
+ * @copyright Copyright &copy; 2011-2012 Jan Was
  * @license http://www.yiiframework.com/license/
  */
 

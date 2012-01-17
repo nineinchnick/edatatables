@@ -1,6 +1,6 @@
 <?php
 /**
- * CButtonColumn class file.
+ * EButtonColumn class file.
  *
  * @license http://www.yiiframework.com/license/
  */

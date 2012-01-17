@@ -1,20 +1,20 @@
 /**
- * jQuery Yii DataTables plugin file.
+ * EDataTables plugin file.
  *
- * @author Jan Was <jwas@nets.com.pl>
- * @copyright Copyright &copy; 2008-2010 NET Sp. z o. o.
+ * @author Jan Was <janek.jan@gmail.com>
+ * @copyright Copyright &copy; 2011-2012 Jan Was
  * @license http://www.yiiframework.com/license/
  */
 
 (function($) {
 	var methods = {
 		init: function (options) {
-			var settings = $.extend({}, $.fn.cDataTable.defaults, options || {});
+			var settings = $.extend({}, $.fn.eDataTables.defaults, options || {});
 			var $this = $(this);
 			var id = $this.attr('id');
-			$.fn.cDataTable.settings[id] = settings;
+			$.fn.eDataTables.settings[id] = settings;
 
-			$.fn.cDataTable.selectCheckedRows(id);
+			$.fn.eDataTables.selectCheckedRows(id);
 
 			$('#'+id+'-selected').data('list',settings.unsavedChanges.selected.length == 0 ? {} : settings.unsavedChanges.selected);
 			$('#'+id+'-deselected').data('list',settings.unsavedChanges.deselected.length == 0 ? {} : settings.unsavedChanges.deselected);
@@ -33,7 +33,7 @@
 					this.checked=isRowSelected;
 					var sboxallname=this.name.substring(0,this.name.length-2)+'_all';	//.. remove '[]' and add '_all'
 					$("input[name='"+sboxallname+"']").attr('checked', $("input[name='"+this.name+"']").length==$("input[name='"+this.name+"']:checked").length);
-					$.fn.cDataTable.select(id, this);
+					$.fn.eDataTables.select(id, this);
 				});
 				if(settings.selectionChanged !== undefined)
 					settings.selectionChanged(id);
@@ -57,7 +57,7 @@
 
 				var input_values = $('#'+id+'-values');
 				var list_values = input_values.data('list');
-				var row_id = $.fn.cDataTable.getKey(id, $(e.target).parent().parent().index());
+				var row_id = $.fn.eDataTables.getKey(id, $(e.target).parent().parent().index());
 				var index = $(e.target).attr('id').substr(0,$(e.target).attr('id').indexOf('_row'));
 				
 				if (typeof list_values == 'undefined') list_values = {};
@@ -88,7 +88,7 @@
 				}
 				$row.toggleClass('selected', this.checked);
 				
-				$.fn.cDataTable.select(id, this);
+				$.fn.eDataTables.select(id, this);
 				if(settings.selectionChanged !== undefined)
 					settings.selectionChanged(id);
 				return true;
@@ -109,7 +109,7 @@
 						settings.selectionChanged(id);
 				});
 			}
-			settings.fnDrawCallback = $.fn.cDataTable.drawCallback;
+			settings.fnDrawCallback = $.fn.eDataTables.drawCallback;
 			jQuery('#'+id+' table').dataTable(settings).fnSetFilteringDelay();
 			if (settings.bScrollCollapse)
 				$('#'+id+' .dataTables_wrapper').css({'min-height':'0px'});
@@ -164,28 +164,25 @@
 		ajaxSuccess: function(data) {
 			var $this = $(this);
 			var id = $this.attr('id');
-			var settings = $.fn.cDataTable.settings[id];
+			var settings = $.fn.eDataTables.settings[id];
 			if(settings.afterAjaxUpdate !== undefined)
 				settings.afterAjaxUpdate(id, data);
 			$('#'+id+' > div.keys').html($.map(data.keys, function(value, index){return '<span>'+value+'</span>';}).join(''));
 		}
 	};
 
-	$.fn.cDataTable = function(method) {
+	$.fn.eDataTables = function(method) {
 		if ( methods[method] ) {
 			return methods[ method ].apply( this, Array.prototype.slice.call( arguments, 1 ));
 		} else if ( typeof method === 'object' || ! method ) {
 			return methods.init.apply( this, arguments );
 		} else {
-			$.error( 'Method ' +  method + ' does not exist on jQuery.cDataTable' );
+			$.error( 'Method ' +  method + ' does not exist on jQuery.eDataTables' );
 		} 
 	};
 
-	$.fn.cDataTable.lang = {
+	$.fn.eDataTables.lang = {
 		pl: {
-			/**
-			 * @todo insert baseUrl here or just put in in CSS?
-			 */
 			sProcessing: '<img src="/images/loader.gif" alt="czekaj"/> Czekaj...',
 			sLengthMenu: "Pokaż _MENU_",
 			sZeroRecords: "Nie znaleziono pasujących rekordów",
@@ -211,7 +208,7 @@
 		}
 	};
 
-	$.fn.cDataTable.defaults = {
+	$.fn.eDataTables.defaults = {
 		ajaxUpdate: [],
 		ajaxVar: 'ajax',
 		pagerClass: 'pager',
@@ -228,7 +225,7 @@
 		sPaginationType: "full_numbers",
 		//aaSorting: [[0, "asc"]],
 		iDisplayLength: 25,
-		oLanguage: $.fn.cDataTable.lang.pl,
+		oLanguage: $.fn.eDataTables.lang.pl,
 		editable: {
 			string: {},
 			integer: {},
@@ -237,19 +234,19 @@
 		buttons: {}
 	};
 
-	$.fn.cDataTable.settings = {};
+	$.fn.eDataTables.settings = {};
 
-	$.fn.cDataTable.drawCallback = function(oSettings) {
+	$.fn.eDataTables.drawCallback = function(oSettings) {
 		// iterate on all checkboxes, get the row id and check in lists of selected and deselected if the state should be changed
 		var $this = $(this).parent().parent();
 		var id = $this.attr('id');
-		var settings = $.fn.cDataTable.settings[id];
+		var settings = $.fn.eDataTables.settings[id];
 		var list_selected = $('#'+id+'-selected').data('list');
 		var list_deselected = $('#'+id+'-deselected').data('list');
 		var list_values = $('#'+id+'-values').data('list');
 		$('#'+id+' .'+settings.tableClass+' > tbody > tr > td >input.select-on-check').each(function(){
 			var row = $(this).parent().parent().index();
-			var key = $.fn.cDataTable.getKey(id, row);
+			var key = $.fn.eDataTables.getKey(id, row);
 			if (typeof list_selected != 'undefined' && typeof list_selected[key] != 'undefined') {
 				$(this).attr('checked',true);
 			} else if (typeof list_deselected != 'undefined' && typeof list_deselected[key] != 'undefined') {
@@ -258,7 +255,7 @@
 		});
 		$('#'+id+' .'+settings.tableClass+' > tbody > tr input.editable').each(function(){
 			var row = $(this).parent().parent().index();
-			var key = $.fn.cDataTable.getKey(id, row);
+			var key = $.fn.eDataTables.getKey(id, row);
 			var attr = $(this).attr('id').substr(0,$(this).attr('id').length-(row+'').length-4);
 			if (typeof list_values != 'undefined'
 					&& typeof list_values[key] != 'undefined'
@@ -267,13 +264,13 @@
 			}
 		});
 		// call selectChecked
-		$.fn.cDataTable.selectCheckedRows(id);
+		$.fn.eDataTables.selectCheckedRows(id);
 		if (typeof settings.fnDrawCallbackCustom != 'undefined') {
 			settings.fnDrawCallbackCustom(oSettings);
 		}
 	};
 
-	$.fn.cDataTable.ajaxError = function(XHR, testStatus, errorThrown) {
+	$.fn.eDataTables.ajaxError = function(XHR, testStatus, errorThrown) {
 		if(XHR.readyState == 0 || XHR.status == 0)
 			return;
 		var err='';
@@ -300,8 +297,8 @@
 			alert(err);
 	};
 
-	$.fn.cDataTable.selectCheckedRows = function(id) {
-		var settings = $.fn.cDataTable.settings[id];
+	$.fn.eDataTables.selectCheckedRows = function(id) {
+		var settings = $.fn.eDataTables.settings[id];
 		$('#'+id+' .'+settings.tableClass+' > tbody > tr > td >input.select-on-check:checked').each(function(){
 			$(this).parent().parent().addClass('selected');
 		});
@@ -312,16 +309,16 @@
 		});
 	};
 
-	$.fn.cDataTable.getKey = function(id, row) {
+	$.fn.eDataTables.getKey = function(id, row) {
 		return $('#'+id+' > div.keys > span:eq('+row+')').text();
 	};
 
-	$.fn.cDataTable.select = function(id, checkbox) {
+	$.fn.eDataTables.select = function(id, checkbox) {
 		var input_selected = $('#' + id + '-selected');
 		var input_deselected = $('#' + id + '-deselected');
 		var list_selected = input_selected.data('list');
 		var list_deselected = input_deselected.data('list');
-		var row_id = $.fn.cDataTable.getKey(id, $(checkbox).parent().parent().index());
+		var row_id = $.fn.eDataTables.getKey(id, $(checkbox).parent().parent().index());
 		if (typeof list_selected == 'undefined') list_selected = {};
 		if (typeof list_deselected == 'undefined') list_deselected = {};
 		if (typeof list_selected[row_id] != 'undefined') {

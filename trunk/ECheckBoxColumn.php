@@ -1,6 +1,6 @@
 <?php
 /**
- * CCheckBoxColumn class file.
+ * ECheckBoxColumn class file.
  *
  * @license http://www.yiiframework.com/license/
  */

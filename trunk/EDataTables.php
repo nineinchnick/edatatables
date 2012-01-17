@@ -2,9 +2,9 @@
 /**
  * EDataTables class file.
  *
- * @author Jan Was <jwas@nets.com.pl>
+ * @author Jan Was <janek.jan@gmail.com>
  * @link http://www.yiiframework.com/
- * @copyright Copyright &copy; 2011-2012 NET Sp. z o. o.
+ * @copyright Copyright &copy; 2011-2012 Jan Was
  * @license http://www.yiiframework.com/license/
  */
 
@@ -13,7 +13,6 @@ Yii::import('ext.EDataTables.*');
 
 /**
  * EDataTables does the same thing as CGridView, but using the datatables.net control.
- * @todo translate initColumns to initJSColumns
  * @todo translate original properties (events like beforeAjaxUpdate) to dataTables equivalents
  * @todo check for other features of CGridView (HTML classes, filters in headers, translations, pagers, summary etc.)
  * @todo refactor serverData, filterForm and filterColumnsMap properties
@@ -49,10 +48,6 @@ class EDataTables extends CGridView
 	 */
 	public $nullDisplay=null;
 
-	/**
-	 * @todo inspect renderItems
-	 * @todo implement renderAdvancedFilters
-	 */
 	public $template="{advancedFilters}\n{items}";
 	public $datatableTemplate='<"H"l<"dataTables_toolbar">fr>t<"F"ip>';
 	public $tableBodyCssClass;
@@ -169,14 +164,14 @@ class EDataTables extends CGridView
 				"bSearchable"	=> false,
 				"bSortable"		=> false,
 				/*
-				"fnRender"		=> 'js:function(oObj){return $.cDataTable.renderCheckBoxCell(\''.$this->getId().'\',oObj);}',
+				"fnRender"		=> 'js:function(oObj){return $.eDataTables.renderCheckBoxCell(\''.$this->getId().'\',oObj);}',
 				 */
 				"aTargets"		=> array(0),
 			);
 		}
 		if (isset($this->editableColumns) && !empty($this->editableColumns)) {
 			$columnDefs[] = array(
-				"fnRender"	=> 'js:function(oObj) {return $(\'#'.$this->getId().'\').cDataTable(\'renderEditableCell\', \''.$this->getId().'\',oObj);}',
+				"fnRender"	=> 'js:function(oObj) {return $(\'#'.$this->getId().'\').eDataTables(\'renderEditableCell\', \''.$this->getId().'\',oObj);}',
 				"aTargets"	=> $this->editableColumns,
 			);
 		}
@@ -348,7 +343,7 @@ EOT;
 		$options['fnServerData'] = "js:function ( sSource, aoData, fnCallback ) {
 			".implode("\n\t\t\t",$serverData).<<<EOT
 			$formData
-			var settings = $.fn.cDataTable.settings['{$this->getId()}'];
+			var settings = $.fn.eDataTables.settings['{$this->getId()}'];
 			if(settings.beforeAjaxUpdate !== undefined)
 				settings.beforeAjaxUpdate('{$this->getId()}');
 			$.ajax( {
@@ -356,8 +351,8 @@ EOT;
 				'type': 'POST',
 				'url': sSource,
 				'data': aoData,
-				'success': [function(data){return $('#{$this->getId()}').cDataTable('ajaxSuccess', data);},fnCallback],
-				'error': $.fn.cDataTable.ajaxError
+				'success': [function(data){return $('#{$this->getId()}').eDataTables('ajaxSuccess', data);},fnCallback],
+				'error': $.fn.eDataTables.ajaxError
 			} );
 		}
 EOT;
@@ -373,7 +368,7 @@ EOT;
 		$cs->registerScriptFile($this->baseScriptUrl.'/jquery.fnSetFilteringDelay.js');
 		$cs->registerScriptFile($this->baseScriptUrl.'/jdatatable.js',CClientScript::POS_END);
 		$cs->registerScriptFile(Yii::app()->assetManager->publish(Yii::getPathOfAlias('application.components.assets')).'/editDialog.js',CClientScript::POS_END);
-		$cs->registerScript(__CLASS__.'#'.$id,"jQuery('#$id').cDataTable($options);");
+		$cs->registerScript(__CLASS__.'#'.$id,"jQuery('#$id').eDataTables($options);");
 	}
 
 	public function renderAdvancedFilters()
