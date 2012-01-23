@@ -20,6 +20,13 @@ Yii::import('ext.EDataTables.*');
  * @todo a different set of columns for filters (filter by invisible columns)
  * @todo bbq support in DataTables
  *
+ * docs todo:
+ * @todo document alignment of numeric columns
+ * @todo document usage of toolbar and its buttons (refresh, export, plot, new)
+ * @todo document usage of filters
+ * @todo document usage of checked rows with examples of server-side processing
+ * @todo i18n support
+ *
  * @author Jan Was <jwas@nets.com.pl>
  */
 class EDataTables extends CGridView
@@ -118,9 +125,17 @@ class EDataTables extends CGridView
 				$column=$this->createDataColumn($column);
 			else
 			{
-				if(!isset($column['class']))
+				if(!isset($column['class'])) {
 					$column['class']='ext.EDataTables.EDataColumn';
-				$column=Yii::createComponent($column, $this);
+					$column=Yii::createComponent($column, $this);
+				} else {
+					//$exceptionParams = array('{class}' => $column['class'], '{column}' => $column['name']);
+					$column=Yii::createComponent($column, $this);
+					if (!method_exists($column,'getDataCellContent')) {
+						//throw new CException(Yii::t('edatatables','Class {class} used for column {column} is incompatible with EDataTables grid. It must provide the getDataCellContent method. See EButtonColumn for a simple example.',$exceptionParams));
+						$column->attachBehavior('cellContentBehavior','ext.EDataTables.ECellContentBehavior');
+					}
+				}
 			}
 			if($column->id===null)
 				$column->id=$id.'_c'.$i;
@@ -183,7 +198,7 @@ class EDataTables extends CGridView
 			if(!$column->visible) {
 				$hiddenColumns[] = $i;
 			}
-			if (!$column->sortable){
+			if (!property_exists($column,'sortable') || !$column->sortable){
 				$nonsortableColumns[] = $i;
 			}
 			if (isset($column->htmlOptions) && isset($column->htmlOptions['class'])) {
@@ -367,7 +382,6 @@ EOT;
 		$cs->registerScriptFile($this->baseScriptUrl.'/jquery.dataTables'.(YII_DEBUG ? '' : '.min' ).'.js');
 		$cs->registerScriptFile($this->baseScriptUrl.'/jquery.fnSetFilteringDelay.js');
 		$cs->registerScriptFile($this->baseScriptUrl.'/jdatatable.js',CClientScript::POS_END);
-		$cs->registerScriptFile(Yii::app()->assetManager->publish(Yii::getPathOfAlias('application.components.assets')).'/editDialog.js',CClientScript::POS_END);
 		$cs->registerScript(__CLASS__.'#'.$id,"jQuery('#$id').eDataTables($options);");
 	}
 
@@ -414,11 +428,9 @@ EOT;
 				continue;
 			}
 			$key=!$hasKeyAttribute || $this->dataProvider->keyAttribute===null ? $data->getPrimaryKey() : $data->{$this->dataProvider->keyAttribute};
-			$key=is_array($key) ? implode(',',$key) : ($data->tempRecordsId !== null ? 'temp_'.$data->tempRecordsId : $key);
+			$key=is_array($key) ? implode(',',$key) : $key;
 			echo "<span>".CHtml::encode($key)."</span>";
 		}
-		//foreach($this->dataProvider->getKeys() as $key)
-		//	echo "<span>".CHtml::encode($key)."</span>";
 		echo "</div>\n";
 		// extra code
 		if ($this->selectableRows) {
