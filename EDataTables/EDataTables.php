@@ -233,7 +233,7 @@ class EDataTables extends CGridView
 		if (isset($this->options['aoColumnDefs'])) {
 			$this->options['aoColumnDefs'] = array_merge($columnDefs, $this->options['aoColumnDefs']);
 		}
-		$options=array_merge(array(
+		$defaultOptions = array(
 			'baseUrl'			=> CJSON::encode(Yii::app()->baseUrl),
 			// options inherited from CGridView JS scripts
 			'ajaxUpdate'		=> $this->ajaxUpdate===false ? false : array_unique(preg_split('/\s*,\s*/',$this->ajaxUpdate.','.$id,-1,PREG_SPLIT_NO_EMPTY)),
@@ -253,7 +253,40 @@ class EDataTables extends CGridView
 			'bStateSave'		=> false,
 			'bPaginate'			=> true,
 			'sCookiePrefix'		=> 'edt_',
-		), $this->options);
+		);
+		if (Yii::app()->getLanguage() !== 'en_us') {
+			// those are the defaults in the DataTables plugin JS source,
+			// we don't need to set them if app language is already en_us
+			$defaultOptions['oLanguage'] = array(
+				"oAria" => array(
+					"sSortAscending" => Yii::t('EDataTables.edt',": activate to sort column ascending"),
+					"sSortDescending" => Yii::t('EDataTables.edt',": activate to sort column descending"),
+				),
+				"oPaginate" => array(
+					"sFirst" => Yii::t('EDataTables.edt',"First"),
+					"sLast" => Yii::t('EDataTables.edt',"Last"),
+					"sNext" => Yii::t('EDataTables.edt',"Next"),
+					"sPrevious" => Yii::t('EDataTables.edt',"Previous"),
+				),
+				"sEmptyTable" => Yii::t('EDataTables.edt',"No data available in table"),
+				"sInfo" => Yii::t('EDataTables.edt',"Showing _START_ to _END_ of _TOTAL_ entries"),
+				"sInfoEmpty" => Yii::t('EDataTables.edt',"Showing 0 to 0 of 0 entries"),
+				"sInfoFiltered" => Yii::t('EDataTables.edt',"(filtered from _MAX_ total entries)"),
+				//"sInfoPostFix" => "",
+				//"sInfoThousands" => ",",
+				"sLengthMenu" => Yii::t('EDataTables.edt',"Show _MENU_ entries"),
+				"sLoadingRecords" => Yii::t('EDataTables.edt',"Loading..."),
+				"sProcessing" => Yii::t('EDataTables.edt',"Processing..."),
+				"sSearch" => Yii::t('EDataTables.edt',"Search:"),
+				//"sUrl" => "",
+				"sZeroRecords" => Yii::t('EDataTables.edt',"No matching records found"),
+			);
+			$localeSettings = localeconv();
+			if (!empty($localeSettings['decimal_point'])) {
+				$defaultOptions['oLanguage']["sInfoThousands"] = $localeSettings['decimal_point'];
+			}
+		}
+		$options=array_merge($defaultOptions, $this->options);
 		if($this->newAjaxUrl!==null)
 			$options['newUrl']=CHtml::normalizeUrl($this->newAjaxUrl);
 		if($this->store_trx_id!==null)
@@ -376,7 +409,7 @@ EOT;
 
 		$cs=Yii::app()->getClientScript();
 		$cs->registerCssFile($this->baseScriptUrl.'/demo_table_jui.css');
-		$cs->registerCssFile($this->baseScriptUrl.'/custom-theme/jquery-ui-1.8.11.custom.css');
+		$cs->registerCssFile($this->baseScriptUrl.'/jquery.dataTables.css');
 		$cs->registerCoreScript('jquery');
 		$cs->registerCoreScript('jquery.ui');
 		$cs->registerScriptFile($this->baseScriptUrl.'/jquery.dataTables'.(YII_DEBUG ? '' : '.min' ).'.js');
@@ -487,10 +520,7 @@ EOT;
 				continue;
 			}
 			$key=!$hasKeyAttribute || $this->dataProvider->keyAttribute===null ? $data->getPrimaryKey() : $data->{$this->dataProvider->keyAttribute};
-			/**
-			 * @todo RELATIONS: fix keys for temporary records, they should be some kind of composite keys - @see NetActiveRecord::saveWithRelated
-			 */
-			$keys[]=is_array($key) ? implode(',',$key) : ($data->tempRecordsId !== null ? 'temp_'.$data->tempRecordsId : $key);
+			$keys[]=is_array($key) ? implode(',',$key) : $key;
 		}
 		return array(
 			'sEcho'					=> $sEcho,

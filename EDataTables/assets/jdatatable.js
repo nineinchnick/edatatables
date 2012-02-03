@@ -181,33 +181,6 @@
 		} 
 	};
 
-	$.fn.eDataTables.lang = {
-		pl: {
-			sProcessing: '<img src="/images/loader.gif" alt="czekaj"/> Czekaj...',
-			sLengthMenu: "Pokaż _MENU_",
-			sZeroRecords: "Nie znaleziono pasujących rekordów",
-			sInfo: "Widoczne od <strong>_START_</strong> do <strong>_END_</strong> z <strong>_TOTAL_</strong> rekordów",
-			sInfoEmpty: "Wyświetlane 0 rekordów",
-			sInfoFiltered: "(wyszukano z <strong>_MAX_</strong> wszystkich rekordów)",
-			sInfoPostFix: "",
-			sSearch: "Szukaj:",
-			sUrl: "",
-			oPaginate: {
-					sFirst: "Pierwsza",
-					sPrevious: "Poprzednia",
-					sNext: "Następna",
-					sLast: "Ostatnia"
-			},
-			error: "Wystąpił nieoczekiwany błąd, nie udało się pobrać danych.\\nZdarzenie to zostało zapisane do dziennika.\\nProsimy powiadomić administratora serwisu.",
-			buttons: {
-				'refresh': null,//'Odśwież',
-				'print': null,//'Drukuj',
-				'export': null,//'CSV',
-				'new': 'Dodaj'
-			}
-		}
-	};
-
 	$.fn.eDataTables.defaults = {
 		ajaxUpdate: [],
 		ajaxVar: 'ajax',
@@ -225,7 +198,6 @@
 		sPaginationType: "full_numbers",
 		//aaSorting: [[0, "asc"]],
 		iDisplayLength: 25,
-		oLanguage: $.fn.eDataTables.lang.pl,
 		editable: {
 			string: {},
 			integer: {},
