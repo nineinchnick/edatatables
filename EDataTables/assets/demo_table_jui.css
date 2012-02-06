@@ -127,18 +127,25 @@ table.display thead th div.DataTables_sort_wrapper span {
 }
 
 .dataTables_length {
-	width: 40%;
+	width: auto;
 	float: left;
 }
 
+.dataTables_toolbar {
+	width: auto;
+	margin-left: 2em;
+	float: right;
+	text-align: right;
+}
+
 .dataTables_filter {
-	width: 50%;
+	width: auto;
 	float: right;
 	text-align: right;
 }
 
 .dataTables_info {
-	width: 50%;
+/*	width: 50%;*/
 	float: left;
 }
 
@@ -278,7 +285,7 @@ table.display tr.even.gradeU {
 
 
 tr.odd {
-	background-color: #E2E4FF;
+	background-color: #EFFDFF;
 }
 
 tr.even {

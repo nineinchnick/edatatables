@@ -59,8 +59,6 @@ class EDataTables extends CGridView
 	public $datatableTemplate='<"H"l<"dataTables_toolbar">fr>t<"F"ip>';
 	public $tableBodyCssClass;
 	public $newAjaxUrl;
-	public $store_trx_id;
-	public $save_trx_id;
 	public $selectionChanged;
 	
 	public $options = array();
@@ -237,7 +235,7 @@ class EDataTables extends CGridView
 			'baseUrl'			=> CJSON::encode(Yii::app()->baseUrl),
 			// options inherited from CGridView JS scripts
 			'ajaxUpdate'		=> $this->ajaxUpdate===false ? false : array_unique(preg_split('/\s*,\s*/',$this->ajaxUpdate.','.$id,-1,PREG_SPLIT_NO_EMPTY)),
-			'ajaxVar'			=> $this->ajaxVar,
+			'ajaxOpts'			=> $this->serverData,
 			'pagerClass'		=> $this->pagerCssClass,
 			'loadingClass'		=> $this->loadingCssClass,
 			'filterClass'		=> $this->filterCssClass,
@@ -289,18 +287,16 @@ class EDataTables extends CGridView
 		$options=array_merge($defaultOptions, $this->options);
 		if($this->newAjaxUrl!==null)
 			$options['newUrl']=CHtml::normalizeUrl($this->newAjaxUrl);
-		if($this->store_trx_id!==null)
-			$options['store_trx_id']=$this->store_trx_id;
-		if($this->save_trx_id!==null)
-			$options['save_trx_id']=$this->save_trx_id;
 		if($this->ajaxUrl!==null)
 			$options['url']=CHtml::normalizeUrl($this->ajaxUrl);
 		if($this->updateSelector!==null)
 			$options['updateSelector']=$this->updateSelector;
 		if($this->enablePagination)
 			$options['pageVar']=$this->dataProvider->getPagination()->pageVar;
-		if($this->beforeAjaxUpdate!==null)
-			$options['beforeAjaxUpdate']=(strpos($this->beforeAjaxUpdate,'js:')!==0 ? 'js:' : '').$this->beforeAjaxUpdate;
+		// not used in jdatatables.js, used in fnServerData set below
+		//! @todo as of datatables 1.9.0 fnServerData could be simplified, since we only modify aoData's properties
+		//if($this->beforeAjaxUpdate!==null)
+		//	$options['beforeAjaxUpdate']=(strpos($this->beforeAjaxUpdate,'js:')!==0 ? 'js:' : '').$this->beforeAjaxUpdate;
 		if($this->afterAjaxUpdate!==null)
 			$options['afterAjaxUpdate']=(strpos($this->afterAjaxUpdate,'js:')!==0 ? 'js:' : '').$this->afterAjaxUpdate;
 		if($this->ajaxUpdateError!==null)
@@ -353,10 +349,12 @@ class EDataTables extends CGridView
 
 		$baseUrl = Yii::app()->baseUrl;
 
-		$serverData = array();
+		$serverData = array(
+			"aoData.push({'name': '".$this->ajaxVar."', 'value': ".$this->getId()."});"
+		);
 		if (isset($this->serverData) && is_array($this->serverData)) {
 			foreach($this->serverData as $k => $s) {
-				$serverData[$k] = "aoData.push({'name': '$k', 'value': ".(substr($s,0,3) === 'js:' ? substr($s,3) : "'$s'")."});";
+				$serverData[] = "aoData.push({'name': '$k', 'value': ".(substr($s,0,3) === 'js:' ? substr($s,3) : "'$s'")."});";
 			}
 		}
 		$formData = '';
@@ -400,7 +398,7 @@ EOT;
 				'url': sSource,
 				'data': aoData,
 				'success': [function(data){return $('#{$this->getId()}').eDataTables('ajaxSuccess', data);},fnCallback],
-				'error': $.fn.eDataTables.ajaxError
+				'error': function(XHR, textStatus, errorThrown){return \$.fn.eDataTables.ajaxError(XHR, textStatus, errorThrown, settings)}
 			} );
 		}
 EOT;
@@ -408,8 +406,11 @@ EOT;
 		$options=CJavaScript::encode($options);
 
 		$cs=Yii::app()->getClientScript();
+		//$cs->registerCssFile($this->baseScriptUrl.'/jquery.dataTables.css');
 		$cs->registerCssFile($this->baseScriptUrl.'/demo_table_jui.css');
-		$cs->registerCssFile($this->baseScriptUrl.'/jquery.dataTables.css');
+		$cs->registerCssFile($this->baseScriptUrl.'/jquery.dataTables_themeroller.css');
+		$cs->registerCssFile($this->baseScriptUrl.'/smoothness/jquery-ui-1.8.17.custom.css');
+		//$cs->registerCssFile($cs->getCoreScriptUrl().'/jui/css/base/jquery-ui.css');
 		$cs->registerCoreScript('jquery');
 		$cs->registerCoreScript('jquery.ui');
 		$cs->registerScriptFile($this->baseScriptUrl.'/jquery.dataTables'.(YII_DEBUG ? '' : '.min' ).'.js');

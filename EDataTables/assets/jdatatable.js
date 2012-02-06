@@ -133,8 +133,6 @@
 									return editDialog(
 										{newUrl: settings.newUrl, saveUrl: '/'+id+'/save'},
 										null,
-										settings.store_trx_id,
-										settings.save_trx_id,
 										function(data){
 											// add key of new item to selected items list
 											var input_selected = $('#' + id + '-selected');
@@ -148,7 +146,8 @@
 											input_selected.val(list_selected_serialized).data('list',list_selected);
 											// refresh, new record will be fetched and selected
 											$('#'+id+' table').dataTable().fnDraw();
-										}
+										},
+										$.extend(settings.ajaxOpts, {ajax:1})
 									);
 								});
 								break;
@@ -183,12 +182,13 @@
 
 	$.fn.eDataTables.defaults = {
 		ajaxUpdate: [],
-		ajaxVar: 'ajax',
 		pagerClass: 'pager',
 		loadingClass: 'loading',
 		filterClass: 'filters',
 		tableClass: 'items',
 		selectableRows: 1,
+
+		ajaxOpts: {},
 
 		bProcessing: true,
 		bServerSide: true,
@@ -242,7 +242,7 @@
 		}
 	};
 
-	$.fn.eDataTables.ajaxError = function(XHR, testStatus, errorThrown) {
+	$.fn.eDataTables.ajaxError = function(XHR, textStatus, errorThrown, settings) {
 		if(XHR.readyState == 0 || XHR.status == 0)
 			return;
 		var err='';
