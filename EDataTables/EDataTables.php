@@ -311,6 +311,7 @@ class EDataTables extends CGridView
 				'icon' => 'ui-icon-refresh',
 				'callback' => null //default will be used, if possible
 			),
+			/*
 			'print' => array(
 				'label' => 'Drukuj',
 				'text' => false,
@@ -332,6 +333,7 @@ class EDataTables extends CGridView
 				'icon' => 'ui-icon-document',
 				'callback' => null //default will be used, if possible
 			)
+			 */
 		),$this->buttons);
 
 		/**
@@ -350,7 +352,7 @@ class EDataTables extends CGridView
 		$baseUrl = Yii::app()->baseUrl;
 
 		$serverData = array(
-			"aoData.push({'name': '".$this->ajaxVar."', 'value': ".$this->getId()."});"
+			"aoData.push({'name': '".$this->ajaxVar."', 'value': '".$this->getId()."'});"
 		);
 		if (isset($this->serverData) && is_array($this->serverData)) {
 			foreach($this->serverData as $k => $s) {
