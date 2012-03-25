@@ -196,17 +196,6 @@ class EDataTables extends CGridView
 
 	protected function initColumnsJS() {
 		$columnDefs = array();
-		if ($this->selectableRows) {
-			$columnDefs[] = array(
-				"sWidth"		=> '20px',
-				"bSearchable"	=> false,
-				"bSortable"		=> false,
-				/*
-				"fnRender"		=> 'js:function(oObj){return $.eDataTables.renderCheckBoxCell(\''.$this->getId().'\',oObj);}',
-				 */
-				"aTargets"		=> array(0),
-			);
-		}
 		if (isset($this->editableColumns) && !empty($this->editableColumns)) {
 			$columnDefs[] = array(
 				"fnRender"	=> 'js:function(oObj) {return $(\'#'.$this->getId().'\').eDataTables(\'renderEditableCell\', \''.$this->getId().'\',oObj);}',
@@ -223,7 +212,11 @@ class EDataTables extends CGridView
 		$sortedColumns = array('asc'=>array(),'desc'=>array(),'all'=>array());
 		$cssClasses = array();
 		$groupColumns = array();
+		$checkBoxColumns = array();
 		foreach($this->columns as $i=>$column) {
+			if ($column instanceof CCheckBoxColumn && $this->selectableRows) {
+				$checkBoxColumns[] = $i;
+			}
 			if(!$column->visible) {
 				$hiddenColumns[] = $i;
 			}
@@ -255,6 +248,14 @@ class EDataTables extends CGridView
 			foreach($cssClasses as $cssClass => $targets) {
 				$columnDefs[] = array( "sClass" => $cssClass, "aTargets" => $targets );
 			}
+		}
+		if (!empty($checkBoxColumns)) {
+			$columnDefs[] = array(
+				"sWidth"		=> '20px',
+				"bSearchable"	=> false,
+				"bSortable"		=> false,
+				"aTargets"		=> $checkBoxColumns,
+			);
 		}
 		if (isset($this->editableColumns) && !empty($this->editableColumns)) {
 			/**
