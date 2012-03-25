@@ -42,6 +42,9 @@ class EEditableColumn extends EDataColumn {
 			case 'integer':
 			case 'double':
 			case 'dec2':
+				if ($this->grid->bootstrap) {
+					$this->class.= ' span1';
+				}
 				echo '<input class="'.$this->class.'" id="'.$id.'" type="text" value="'.$value.'" size="6" maxlength="9"/>';
 				break;
 			case 'flags':
@@ -59,20 +62,6 @@ class EEditableColumn extends EDataColumn {
 				//echo '<input class="'.$this->class.'" id="'.$id.'" type="text" value="'.$value.'" maxlength="17"/>';
 				echo '<input class="'.$this->class.' '.$this->grid->id.'_datepickers" id="'.$id.'" type="text" value="'.$value.'" maxlength="17"/>';
 				Yii::app()->getClientScript()->registerScript(__CLASS__.'#'.$this->grid->id.'_datepickers', '$(\'.'.$this->grid->id.'_datepickers\').datepicker(jQuery.extend(jQuery.datepicker.regional[\'pl\'], {constrainInput:false,changeMonth:true,changeYear:true,dateFormat:\'yy-mm-dd\', yearRange: \'c-60:c+15\'}));');
-				/*
-				$this->grid->getOwner()->widget('zii.widgets.jui.CJuiDatePicker', array(
-					'name'	=> 'publishDate',
-					'id'	=> $id,
-					'value'	=> $value,
-					'options'=>array(
-						'changeMonth'=>true,
-						'changeYear'=>true,
-					),
-					'htmlOptions'=>array(
-						'class'=>$this->class,
-					)
-				));
-				 */
 				break;
 			case 'image':
 				throw new Exception('Editable column not implemented for type '.$this->type.' ('.var_export($value,true).')');

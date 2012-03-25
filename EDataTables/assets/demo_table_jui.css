@@ -527,3 +527,8 @@ tr.even.gradeU td.sorting_3 {
 .ex_highlight #example tbody tr.odd:hover, #example tbody tr.odd td.highlighted {
 	background-color: #E6FF99;
 }
+
+/*table.display thead tr th {*/
+.grid-view table.items th, .grid-view table.items td {
+	background-repeat: repeat;
+}

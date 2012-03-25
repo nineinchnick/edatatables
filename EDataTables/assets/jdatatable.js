@@ -6,6 +6,110 @@
  * @license http://www.yiiframework.com/license/
  */
 
+/* Default class modification */
+$.extend( $.fn.dataTableExt.oStdClasses, {
+	"sWrapper": "dataTables_wrapper form-inline"
+} );
+
+/* API method to get paging information */
+$.fn.dataTableExt.oApi.fnPagingInfo = function ( oSettings )
+{
+	return {
+		"iStart":         oSettings._iDisplayStart,
+		"iEnd":           oSettings.fnDisplayEnd(),
+		"iLength":        oSettings._iDisplayLength,
+		"iTotal":         oSettings.fnRecordsTotal(),
+		"iFilteredTotal": oSettings.fnRecordsDisplay(),
+		"iPage":          Math.ceil( oSettings._iDisplayStart / oSettings._iDisplayLength ),
+		"iTotalPages":    Math.ceil( oSettings.fnRecordsDisplay() / oSettings._iDisplayLength )
+	};
+}
+
+/* Bootstrap style pagination control */
+$.extend( $.fn.dataTableExt.oPagination, {
+	"bootstrap": {
+		"fnInit": function( oSettings, nPaging, fnDraw ) {
+			var oLang = oSettings.oLanguage.oPaginate;
+			var fnClickHandler = function ( e ) {
+				e.preventDefault();
+				if ( oSettings.oApi._fnPageChange(oSettings, e.data.action) ) {
+					fnDraw( oSettings );
+				}
+			};
+
+			$(nPaging).addClass('pagination').append(
+				'<ul>'+
+					'<li class="first disabled"><a href="#">'+oLang.sFirst+'</a></li>'+
+					'<li class="prev disabled"><a href="#">'+oLang.sPrevious+'</a></li>'+
+					'<li class="next disabled"><a href="#">'+oLang.sNext+'</a></li>'+
+					'<li class="last disabled"><a href="#">'+oLang.sLast+'</a></li>'+
+				'</ul>'
+			);
+			var els = $('a', nPaging);
+			$(els[0]).bind( 'click.DT', { action: "first" }, fnClickHandler );
+			$(els[1]).bind( 'click.DT', { action: "previous" }, fnClickHandler );
+			$(els[2]).bind( 'click.DT', { action: "next" }, fnClickHandler );
+			$(els[3]).bind( 'click.DT', { action: "last" }, fnClickHandler );
+		},
+
+		"fnUpdate": function ( oSettings, fnDraw ) {
+			var iListLength = 5;
+			var oPaging = oSettings.oInstance.fnPagingInfo();
+			var an = oSettings.aanFeatures.p;
+			var i, j, sClass, iStart, iEnd, iHalf=Math.floor(iListLength/2);
+
+			if ( oPaging.iTotalPages < iListLength) {
+				iStart = 1;
+				iEnd = oPaging.iTotalPages;
+			}
+			else if ( oPaging.iPage <= iHalf ) {
+				iStart = 1;
+				iEnd = iListLength;
+			} else if ( oPaging.iPage >= (oPaging.iTotalPages-iHalf) ) {
+				iStart = oPaging.iTotalPages - iListLength + 1;
+				iEnd = oPaging.iTotalPages;
+			} else {
+				iStart = oPaging.iPage - iHalf + 1;
+				iEnd = iStart + iListLength - 1;
+			}
+
+			for ( i=0, iLen=an.length ; i<iLen ; i++ ) {
+				// Remove the middle elements
+				var size = $('li',an[i]).size();
+				$('li:gt(1)', an[i]).filter(':lt('+(size-4)+')').remove();
+				size = $('li',an[i]).size();
+				var prelast = $('li:eq('+(size-2)+')', an[i]);
+
+				// Add the new list items and their event handlers
+				for ( j=iStart ; j<=iEnd ; j++ ) {
+					sClass = (j==oPaging.iPage+1) ? 'class="active"' : '';
+					$('<li '+sClass+'><a href="#">'+j+'</a></li>')
+						.insertBefore( prelast[0] )
+						.bind('click', function (e) {
+							e.preventDefault();
+							oSettings._iDisplayStart = (parseInt($('a', this).text(),10)-1) * oPaging.iLength;
+							fnDraw( oSettings );
+						} );
+				}
+
+				// Add / remove disabled classes from the static elements
+				if ( oPaging.iPage === 0 ) {
+					$('li:lt(2)', an[i]).addClass('disabled');
+				} else {
+					$('li:lt(2)', an[i]).removeClass('disabled');
+				}
+
+				size = $('li',an[i]).size();
+				if ( oPaging.iPage === oPaging.iTotalPages-1 || oPaging.iTotalPages === 0 ) {
+					$('li:gt('+(size-3)+')', an[i]).addClass('disabled');
+				} else {
+					$('li:gt('+(size-3)+')', an[i]).removeClass('disabled');
+				}
+			}
+		}
+	}
+} );
+
 (function($) {
 	var methods = {
 		init: function (options) {
@@ -49,30 +153,48 @@
 			}
 
 			//$('#'+id+' .'+settings.tableClass+' > tbody > tr input.editable').die('change').live('change',function(e){
-			$('#'+id+' .'+settings.tableClass+' > tbody').undelegate('input.editable','change').delegate('input.editable','change',function(e){
-				// if this is a not empty textbox and row is not selected select it
-				if (!$(this).parent().parent().hasClass('selected') && (e.target.type != 'text' || $(e.target).val() != '')) {
-					selectRowFromTr($(this).parent().parent()[0]);
-				}
+			$('#'+id+' .'+settings.tableClass+' > tbody')
+				.undelegate('input.editable','change')
+				.delegate('input.editable','change',function(e){
+					// if this is a not empty textbox and row is not selected select it
+					if (!$(this).parent().parent().hasClass('selected') && (e.target.type != 'text' || $(e.target).val() != '')) {
+						selectRowFromTr($(this).parent().parent()[0]);
+					}
 
-				var input_values = $('#'+id+'-values');
-				var list_values = input_values.data('list');
-				var row_id = $.fn.eDataTables.getKey(id, $(e.target).parent().parent().index());
-				var index = $(e.target).attr('id').substr(0,$(e.target).attr('id').indexOf('_row'));
-				
-				if (typeof list_values == 'undefined') list_values = {};
-				if (typeof list_values[row_id] == 'undefined') list_values[row_id] = {};
-				var value;
-				switch(e.target.type) {
-					default:
-					case 'text': value = $(e.target).val(); break;
-					case 'checkbox': value = $(e.target).attr('checked') ? true : false; break;
+					var input_values = $('#'+id+'-values');
+					var list_values = input_values.data('list');
+					var row_id = $.fn.eDataTables.getKey(id, $(e.target).parent().parent().index());
+					var index = $(e.target).attr('id').substr(0,$(e.target).attr('id').indexOf('_row'));
+					
+					if (typeof list_values == 'undefined') list_values = {};
+					if (typeof list_values[row_id] == 'undefined') list_values[row_id] = {};
+					var value;
+					switch(e.target.type) {
+						default:
+						case 'text': value = $(e.target).val(); break;
+						case 'checkbox': value = $(e.target).attr('checked') ? true : false; break;
+					}
+					list_values[row_id][index] = value;
+					
+					input_values.val($.param(list_values)).data('list',list_values);
+					if(typeof settings.editableEvents == 'function') {
+						settings.editableEvents(e);
+					} else if (typeof settings.editableEvents == 'object' && typeof settings.editableEvents.change == 'function') {
+						settings.editableEvents.change(e);
+					}
+					return false;
 				}
-				list_values[row_id][index] = value;
-				
-				input_values.val($.param(list_values)).data('list',list_values);
-				return false;
-			});
+			);
+			if (typeof settings.editableEvents == 'object') {
+				for (var i in settings.editableEvents) {
+					if (i == 'change') {
+						continue;
+					}
+					$('#'+id+' .'+settings.tableClass+' > tbody')
+						.undelegate('input.editable',i)
+						.delegate('input.editable',i,settings.editableEvents[i]);
+				}
+			}
 
 			//$('#'+id+' .'+settings.tableClass+' > tbody > tr > td > input.select-on-check').die('click').live('click',function(){
 			$('#'+id+' .'+settings.tableClass+' > tbody').undelegate('input.select-on-check','click').delegate('input.select-on-check','click',function(){
@@ -110,7 +232,7 @@
 				});
 			}
 			settings.fnDrawCallback = $.fn.eDataTables.drawCallback;
-			jQuery('#'+id+' table').dataTable(settings).fnSetFilteringDelay();
+			$.fn.eDataTables.tables[id] = jQuery('#'+id+' table').dataTable(settings).fnSetFilteringDelay();
 			if (settings.bScrollCollapse)
 				$('#'+id+' .dataTables_wrapper').css({'min-height':'0px'});
 
@@ -121,8 +243,13 @@
 						// skip if definition is missing (disabling defaults) or skip the new button if newUrl is not provided
 						continue;
 					}
-					var button = $('<button class="'+settings.buttons[i].htmlClass+'">'+settings.buttons[i].label+'</button>').appendTo(toolbar)
+					var button;
+					if (settings.bootstrap) {
+						button = $('<a class="btn '+settings.buttons[i].htmlClass+'" rel="tooltip" title="'+settings.buttons[i].label+'"><i class="'+settings.buttons[i].icon+'"></i>'+(settings.buttons[i].text ? settings.buttons[i].label : '')+'</a>').appendTo(toolbar);
+					} else {
+						button = $('<button class="'+settings.buttons[i].htmlClass+'">'+settings.buttons[i].label+'</button>').appendTo(toolbar)
 						.button({icons: {primary:settings.buttons[i].icon}, text: settings.buttons[i].text});
+					}
 					if (settings.buttons[i].callback == null) {
 						switch(i) {
 							case 'refresh':	button.click(function(){$('#'+id+' table').dataTable().fnDraw(); return false;}); break;
@@ -130,7 +257,7 @@
 							case 'export':	button.click(function(){return false;}); break;
 							case 'new':
 								button.click(function(){
-									return editDialog(
+									return $.fn.eDataTables.editDialog(
 										{newUrl: settings.newUrl, saveUrl: '/'+id+'/save'},
 										null,
 										function(data){
@@ -208,9 +335,14 @@
 
 	$.fn.eDataTables.settings = {};
 
+	$.fn.eDataTables.tables = {};
+
 	$.fn.eDataTables.drawCallback = function(oSettings) {
 		// iterate on all checkboxes, get the row id and check in lists of selected and deselected if the state should be changed
 		var $this = $(this).parent().parent();
+		if (typeof $this.attr('id') == 'undefined') {
+			$this = $this.parent().parent();
+		}
 		var id = $this.attr('id');
 		var settings = $.fn.eDataTables.settings[id];
 		var list_selected = $('#'+id+'-selected').data('list');
@@ -238,7 +370,7 @@
 		// call selectChecked
 		$.fn.eDataTables.selectCheckedRows(id);
 		if (typeof settings.fnDrawCallbackCustom != 'undefined') {
-			settings.fnDrawCallbackCustom(oSettings);
+			settings.fnDrawCallbackCustom(oSettings,id);
 		}
 	};
 
@@ -327,5 +459,127 @@
 		input_deselected.val(list_deselected_serialized).data('list',list_deselected);
 		return false;
 	};
+
+	/**
+	 * Validates the form specified by id (typically the one containing this dataTable)
+	 * @todo this should be available in jquery.yiiactiveform.js
+	 * @param int id
+	 * @param function successCallback
+	 * @param function errorCallback
+	 */
+	$.fn.eDataTables.processYiiForm = function($form, successCallback, errorCallback) {
+		var settings = $form.data('settings');
+		if(settings.timer!=undefined) {
+			clearTimeout(settings.timer);
+		}
+		settings.submitting=true;
+		if(settings.beforeValidate==undefined || settings.beforeValidate($form)) {
+			$.fn.yiiactiveform.validate($form, function(data){
+				var hasError = false;
+				$.each(settings.attributes, function(i, attribute){
+					hasError = $.fn.yiiactiveform.updateInput(attribute, data, $form) || hasError;
+				});
+				$.fn.yiiactiveform.updateSummary($form, data);
+				if((settings.afterValidate==undefined || settings.afterValidate($form, data, hasError)) && !hasError) {
+					if (typeof successCallback == 'function')
+						successCallback($form);
+					settings.submitting=false;
+					return true;
+				} else if (typeof errorCallback == 'function') {
+					settings.submitting=false;
+					errorCallback();
+					return false;
+				}
+			}, errorCallback);
+			return true;
+		} else {
+			settings.submitting=false;
+			return false;
+		}
+	}
+
+	$.fn.eDataTables.saveYiiForm = function($form, dialog, afterSave) {
+		var params = $form.serialize() + '&ajax=1'
+		var saveUrl = $form.attr('action');
+		$.post(saveUrl, params, function(data, textStatus, jqXHR){
+			if (jqXHR.getResponseHeader('Content-Type') == 'text/html') {
+				// a form must have failed validation, redraw it
+				dialog.html(data);
+				dialog.scrollTop(0);
+			} else {
+				// we expect JSON
+				if (data.errno == 0){
+					if (typeof afterSave == 'function') {
+						afterSave(data.message);
+					}
+					dialog.dialog('destroy').remove();
+				}
+			}
+		});
+		return false;
+	}
+
+	/**
+	 * @param urls an object with properties: {controller: '', editAction: '', saveAction: ''} OR {newUrl: '', saveUrl: ''} 
+	 */
+	$.fn.eDataTables.editDialog = function(urls, id, afterSave, opts){
+		if (typeof opts == 'undefined') {
+			opts = {ajax:1};
+		}
+		/**
+		 * @todo baseUrl, action?
+		 */
+		var url = '';
+		if (typeof urls.controller != 'undefined') {
+			url = '/'+urls.controller+'/' + (typeof urls.editAction != 'undefined' ? urls.editAction : 'edit') + (typeof id != 'undefined' && id != null ? '/'+id : '');
+		} else {
+			url = urls.newUrl;
+		}
+		var dialog = $('<div style="display:none">Ładowanie danych ...</div>').appendTo('body');
+		// load remote content
+		dialog.dialog({
+			modal: true,
+			draggable: true,
+			resizable: true,
+			width: 900,
+			height: 600,
+			position: ['center', 60],
+			buttons: {
+				"Zapisz": function() {
+					var $form = $('form',this);
+					$.fn.eDataTables.processYiiForm($form, function(f){return $.fn.eDataTables.saveYiiForm(f, dialog, afterSave)});
+					/**
+					 * @todo disable this button until validation error or other submit cancelling event occurs
+					 */
+					return false;
+				},
+				"Anuluj": function() { /** @todo we should clear form timers before destroying it */ dialog.dialog("destroy").remove(); return false; }
+			},
+			close:function() { $(this).dialog('destroy').remove(); return false; }
+		});
+		dialog.load(url, opts, function(responseText, textStatus){
+			if (textStatus == 'error') {
+				try {
+					response = $.parseJSON(responseText);
+					dialog.html('<h3 style="color:red">'+response.error+'</h3>');
+				} catch(e) {
+					dialog.html('<h3 style="color:red">Wystąpił nieznany błąd.</h3><br/><br/><h3>Tego typu zdarzenia nie są rejestrowane, prosimy o zawiadomienie administratorów strony.</h3>');
+				}
+				return;
+			}
+			var $form = $('form',this);
+			var submitButton = $("button[type='submit']",$form);
+			/**
+			 * @todo before blocking form submit action check how it validates
+			 */
+			$form.submit(function(){return false;});
+			submitButton.parent().remove();
+			if (typeof urls.saveUrl != 'undefined') {
+				$form.attr('action', typeof urls.saveUrl == 'function' ? urls.saveUrl() : urls.saveUrl);
+			}
+		});
+
+		return false;
+	}
 
 })(jQuery);

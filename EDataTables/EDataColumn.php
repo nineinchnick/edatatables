@@ -28,25 +28,9 @@ class EDataColumn extends CDataColumn {
 			//parent::renderHeaderCellContent();
 	}
 
-	/**
-	 * Renders the data cell content.
-	 * This method evaluates {@link value} or {@link name} and renders the result.
-	 * @param integer $row the row number (zero-based)
-	 * @param mixed $data the data associated with the row
-	 */
-	protected function renderDataCellContent($row,$data,$return=false)
-	{
-		if($this->value!==null)
-			$value=$this->evaluateExpression($this->value,array('data'=>$data,'row'=>$row));
-		else if($this->name!==null)
-			$value=CHtml::value($data,$this->name);
-		if ($return)
-			return $value===null ? $this->grid->nullDisplay : $this->grid->getFormatter()->format($value,$this->type);
-		else
-			echo $value===null ? $this->grid->nullDisplay : $this->grid->getFormatter()->format($value,$this->type);
-	}
-
 	public function getDataCellContent($row,$data) {
-		return $this->renderDataCellContent($row,$data,true);
+		ob_start();
+		$this->renderDataCellContent($row,$data);
+		return ob_get_clean();
 	}
 }

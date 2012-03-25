@@ -56,7 +56,7 @@ class EDataTables extends CGridView
 	public $nullDisplay=null;
 
 	public $template="{advancedFilters}\n{items}";
-	public $datatableTemplate='<"H"l<"dataTables_toolbar">fr>t<"F"ip>';
+	public $datatableTemplate;
 	public $tableBodyCssClass;
 	public $newAjaxUrl;
 	public $selectionChanged;
@@ -68,35 +68,61 @@ class EDataTables extends CGridView
 	public $unsavedChanges = array('selected'=>'','deselected'=>'','values'=>'');
 	public $buttons = array();
 
+	/**
+	 * @var boolean if true, bootstrap style will be used, jquery UI themeroller otherwise, which is the default
+	 */
+	public $bootstrap = false;
+
+	/**
+	 * @var array if not null, FixedHeader plugin will be initialized using this property as options
+	 */
+	public $fixedHeaders;
+
 	public function init() {
 		// check if a cookie exist holding some options and explode it into REQUEST
 		// must be done before parent::init(), because it calls initColumns and it calls dataProvider->getData()
 		// not done if options are passed through GET/POST
-		if (isset($this->options['bStateSave']) && $this->options['bStateSave'] && !isset($_REQUEST['iSortingCols'])) {
-			$id=$this->getId();
-			$prefix = isset($this->options['sCookiePrefix']) ? $this->options['sCookiePrefix'] : 'edt_';
-			foreach($_COOKIE as $key=>$value) {
-				if (strpos($key,$prefix)!==0 && substr($key, -strlen($id)) !== $id) continue;
-				$options = json_decode($value, true);
-				// for now, extract only sorting information
-				if (isset($options['aaSorting']) && is_array($options['aaSorting'])) {
-					$i=0;
-					foreach($options['aaSorting'] as $sort) {
-						$_REQUEST['iSortCol_'.$i] = $sort[0];
-						$_REQUEST['sSortDir_'.$i++] = $sort[1];
-					}
-					$_REQUEST['iSortingCols']=$i;
-				}
-				//if ($options !== null) $_REQUEST=array_merge($_REQUEST,$options);
-			}
+		if (isset($this->options['bStateSave']) && $this->options['bStateSave']) {
+			self::restoreState($this->getId(), isset($this->options['sCookiePrefix']) ? $this->options['sCookiePrefix'] : 'edt_');
 		}
+		// this needs to be set before parent::init, where grid-view would be added and break bootstrap
+		if($this->bootstrap && !isset($this->htmlOptions['class']))
+            $this->htmlOptions['class']='';
 		parent::init();
 		/**
 		 * @todo apparently CGridView wasn't meant to be inherited from
 		 */
 		$this->baseScriptUrl=Yii::app()->getAssetManager()->publish(Yii::getPathOfAlias('ext.EDataTables').'/assets');
 		// append display to the table class, so JUI style on datatable will display properly
-		$this->itemsCssClass.=(!empty($this->itemsCssClass) ? ' ' : '').'display';
+		if ($this->bootstrap) {
+			$this->itemsCssClass='table table-striped table-bordered '.$this->itemsCssClass;
+		} else {
+			$this->itemsCssClass='display '.$this->itemsCssClass;
+		}
+	}
+
+	/**
+	 * If bStateSave was set when initializing widget it saves sorting and pagination into cookies.
+	 * This method should be called before preparing a dataProvider,
+	 * as it uses CSort which read $_REQUEST.
+	 */
+	public static function restoreState($id, $prefix = 'edt_') {
+		if (!isset($_COOKIE) || isset($_REQUEST['iSortingCols'])) return;
+
+		foreach($_COOKIE as $key=>$value) {
+			if (strpos($key,$prefix)!==0 && substr($key, -strlen($id)) !== $id) continue;
+			$options = json_decode($value, true);
+			// for now, extract only sorting information
+			if (isset($options['aaSorting']) && is_array($options['aaSorting'])) {
+				$i=0;
+				foreach($options['aaSorting'] as $sort) {
+					if (!isset($sort[0]) || !isset($sort[1])) continue;
+					$_REQUEST['iSortCol_'.$i] = $sort[0];
+					$_REQUEST['sSortDir_'.$i++] = $sort[1];
+				}
+				$_REQUEST['iSortingCols']=$i;
+			}
+		}
 	}
 
 	/**
@@ -130,7 +156,6 @@ class EDataTables extends CGridView
 					//$exceptionParams = array('{class}' => $column['class'], '{column}' => $column['name']);
 					$column=Yii::createComponent($column, $this);
 					if (!method_exists($column,'getDataCellContent')) {
-						//throw new CException(Yii::t('edatatables','Class {class} used for column {column} is incompatible with EDataTables grid. It must provide the getDataCellContent method. See EButtonColumn for a simple example.',$exceptionParams));
 						$column->attachBehavior('cellContentBehavior','ext.EDataTables.ECellContentBehavior');
 					}
 				}
@@ -188,8 +213,14 @@ class EDataTables extends CGridView
 				"aTargets"	=> $this->editableColumns,
 			);
 		}
+		$sort = $this->dataProvider->getSort();
+		$defaultOrder = array();
+		if ($sort instanceof CSort && is_array($sort->defaultOrder)) {
+			$defaultOrder = $sort->defaultOrder;
+		}
 		$hiddenColumns = array();
 		$nonsortableColumns = array();
+		$sortedColumns = array('asc'=>array(),'desc'=>array(),'all'=>array());
 		$cssClasses = array();
 		$groupColumns = array();
 		foreach($this->columns as $i=>$column) {
@@ -198,11 +229,23 @@ class EDataTables extends CGridView
 			}
 			if (!property_exists($column,'sortable') || !$column->sortable){
 				$nonsortableColumns[] = $i;
+			} else if (isset($defaultOrder[$column->name])) {
+				$sortedColumns[$defaultOrder[$column->name] == CSort::SORT_ASC ? 'asc' : 'desc'][] = $i;
+				$sortedColumns['all'][] = array($i, $defaultOrder[$column->name] == CSort::SORT_ASC ? 'asc' : 'desc');
 			}
 			if (isset($column->htmlOptions) && isset($column->htmlOptions['class'])) {
 				if (!isset($cssClasses[$column->htmlOptions['class']])) $cssClasses[$column->htmlOptions['class']] = array();
 				$cssClasses[$column->htmlOptions['class']][] = $i;
 			}
+		}
+		/*
+		if (!empty($sortedColumns['asc']))
+			$columnDefs[] = array( "asSorting" => array('asc'), "aTargets" => $sortedColumns['asc'] );
+		if (!empty($sortedColumns['desc']))
+			$columnDefs[] = array( "asSorting" => array('desc'), "aTargets" => $sortedColumns['desc'] );
+		 */
+		if (!empty($sortedColumns['all']) && !isset($this->options['aaSorting'])) {
+			$this->options['aaSorting'] = $sortedColumns['all'];
 		}
 		if (!empty($hiddenColumns))
 			$columnDefs[] = array( "bVisible" => false, "aTargets" => $hiddenColumns );
@@ -233,10 +276,11 @@ class EDataTables extends CGridView
 		}
 		$defaultOptions = array(
 			'baseUrl'			=> CJSON::encode(Yii::app()->baseUrl),
+			'bootstrap'			=> $this->bootstrap,
 			// options inherited from CGridView JS scripts
 			'ajaxUpdate'		=> $this->ajaxUpdate===false ? false : array_unique(preg_split('/\s*,\s*/',$this->ajaxUpdate.','.$id,-1,PREG_SPLIT_NO_EMPTY)),
 			'ajaxOpts'			=> $this->serverData,
-			'pagerClass'		=> $this->pagerCssClass,
+			'pagerClass'		=> $this->bootstrap ? 'paging_bootstrap pagination' : $this->pagerCssClass,
 			'loadingClass'		=> $this->loadingCssClass,
 			'filterClass'		=> $this->filterCssClass,
 			//'tableClass'		=> $this->itemsCssClass,
@@ -246,11 +290,12 @@ class EDataTables extends CGridView
 			'iDeferLoading'		=> $this->dataProvider->getTotalItemCount(),
 			'sAjaxSource'		=> CHtml::normalizeUrl($this->ajaxUrl),
 			'aoColumnDefs'		=> $columnDefs,
-			'sDom'				=> '<"H"l<"dataTables_toolbar">fr>t<"F"ip>',
+			'sDom'				=> $this->bootstrap ? "<'row'<'span3'l><'dataTables_toolbar'><'pull-right'f>r>t<'row'<'span3'i><'pull-right'p>>" : "<'H'l<'dataTables_toolbar'>fr>t<'F'ip>",
 			'bScrollCollapse'	=> false,
 			'bStateSave'		=> false,
 			'bPaginate'			=> true,
 			'sCookiePrefix'		=> 'edt_',
+			'bJQueryUI'			=> !$this->bootstrap,
 		);
 		if (Yii::app()->getLanguage() !== 'en_us') {
 			// those are the defaults in the DataTables plugin JS source,
@@ -293,6 +338,10 @@ class EDataTables extends CGridView
 			$options['updateSelector']=$this->updateSelector;
 		if($this->enablePagination)
 			$options['pageVar']=$this->dataProvider->getPagination()->pageVar;
+		if($this->bootstrap)
+			$options['sPaginationType'] = 'bootstrap';
+		if ($this->datatableTemplate)
+			$options['sDom'] = $this->datatableTemplate;
 		// not used in jdatatables.js, used in fnServerData set below
 		//! @todo as of datatables 1.9.0 fnServerData could be simplified, since we only modify aoData's properties
 		//if($this->beforeAjaxUpdate!==null)
@@ -308,32 +357,30 @@ class EDataTables extends CGridView
 				'label' => 'Odśwież',
 				'text' => false,
 				'htmlClass' => 'refreshButton',
-				'icon' => 'ui-icon-refresh',
+				'icon' => $this->bootstrap ? 'icon-refresh' : 'ui-icon-refresh',
 				'callback' => null //default will be used, if possible
 			),
-			/*
 			'print' => array(
 				'label' => 'Drukuj',
 				'text' => false,
 				'htmlClass' => 'printButton',
-				'icon' => 'ui-icon-print',
+				'icon' => $this->bootstrap ? 'icon-print' : 'ui-icon-print',
 				'callback' => null //default will be used, if possible
 			),
 			'export' => array(
 				'label' => 'CSV',
 				'text' => false,
 				'htmlClass' => 'exportButton',
-				'icon' => 'ui-icon-disk',
+				'icon' => $this->bootstrap ? 'icon-download-alt' : 'ui-icon-disk',
 				'callback' => null //default will be used, if possible
 			),
 			'new' => array(
 				'label' => 'Dodaj',
 				'text' => true,
-				'htmlClass' => 'refreshButton',
-				'icon' => 'ui-icon-document',
+				'htmlClass' => 'newButton',
+				'icon' => $this->bootstrap ? 'icon-plus' : 'ui-icon-document',
 				'callback' => null //default will be used, if possible
 			)
-			 */
 		),$this->buttons);
 
 		/**
@@ -363,6 +410,9 @@ class EDataTables extends CGridView
 		if ($this->filterForm !== null) {
 				$formData .= <<<EOT
 			$.merge(aoData,$('{$this->filterForm}').serializeArray());
+			var csrfToken = $('{$this->filterForm} input[name=YII_CSRF_TOKEN]');
+			if (csrfToken.length > 0)
+				aoData.push({'name': 'YII_CSRF_TOKEN','value':csrfToken.val()});
 			aoData.push({'name':'submit','value':true});
 EOT;
 		}
@@ -406,19 +456,36 @@ EOT;
 EOT;
 		
 		$options=CJavaScript::encode($options);
+		self::initClientScript($this->bootstrap, $this->fixedHeaders !== null);
+		$cs=Yii::app()->getClientScript();
+		$cs->registerScript(__CLASS__.'#'.$id,"jQuery('#$id').eDataTables($options);");
+		if ($this->fixedHeaders !== null) {
+			//$cs->registerScript(__CLASS__.'#'.$id.'_fixedheader',"new FixedHeader( $.fn.eDataTables.tables['$id'], ".CJavaScript::encode($this->fixedHeaders)." );");
+			//$cs->registerScript(__CLASS__.'#'.$id.'_fixedheader',"new FixedColumns( $.fn.eDataTables.tables['$id'], ".CJavaScript::encode($this->fixedHeaders)." );");
+		}
+	}
+	
+	public static function initClientScript($bootstrap=false, $fixedHeaders=false){
+		$baseScriptUrl = Yii::app()->getAssetManager()->publish(Yii::getPathOfAlias('ext.EDataTables').'/assets');
 
 		$cs=Yii::app()->getClientScript();
-		//$cs->registerCssFile($this->baseScriptUrl.'/jquery.dataTables.css');
-		$cs->registerCssFile($this->baseScriptUrl.'/demo_table_jui.css');
-		$cs->registerCssFile($this->baseScriptUrl.'/jquery.dataTables_themeroller.css');
-		$cs->registerCssFile($this->baseScriptUrl.'/smoothness/jquery-ui-1.8.17.custom.css');
-		//$cs->registerCssFile($cs->getCoreScriptUrl().'/jui/css/base/jquery-ui.css');
 		$cs->registerCoreScript('jquery');
-		$cs->registerCoreScript('jquery.ui');
-		$cs->registerScriptFile($this->baseScriptUrl.'/jquery.dataTables'.(YII_DEBUG ? '' : '.min' ).'.js');
-		$cs->registerScriptFile($this->baseScriptUrl.'/jquery.fnSetFilteringDelay.js');
-		$cs->registerScriptFile($this->baseScriptUrl.'/jdatatable.js',CClientScript::POS_END);
-		$cs->registerScript(__CLASS__.'#'.$id,"jQuery('#$id').eDataTables($options);");
+		if ($bootstrap) {
+			//$cs->registerCssFile($baseScriptUrl.'/jquery.dataTables.css');
+			$cs->registerCssFile($baseScriptUrl.'/bootstrap.dataTables.css');
+		} else {
+			$cs->registerCssFile($baseScriptUrl.'/demo_table_jui.css');
+			$cs->registerCssFile($baseScriptUrl.'/jquery.dataTables_themeroller.css');
+			$cs->registerCssFile($baseScriptUrl.'/smoothness/jquery-ui-1.8.17.custom.css');
+			$cs->registerCoreScript('jquery.ui');
+		}
+		$cs->registerScriptFile($baseScriptUrl.'/jquery.dataTables'.(YII_DEBUG ? '' : '.min' ).'.js');
+		$cs->registerScriptFile($baseScriptUrl.'/jquery.fnSetFilteringDelay.js');
+		$cs->registerScriptFile($baseScriptUrl.'/jdatatable.js',CClientScript::POS_END);
+		if ($fixedHeaders !== null) {
+			//$cs->registerScriptFile($baseScriptUrl.'/FixedHeader'.(YII_DEBUG ? '' : '.min').'.js');
+			//$cs->registerScriptFile($baseScriptUrl.'/FixedColumns'.(YII_DEBUG ? '' : '.min').'.js');
+		}
 	}
 
 	public function renderAdvancedFilters()

@@ -1,5 +1,6 @@
 <?php
 return array(
+	"(filtered from _MAX_ total entries)" => "(wyszukano z <strong>_MAX_</strong> wszystkich rekordów)",
 	": activate to sort column ascending" => ": wybierz, aby posortować kolumnę rosnąco",
 	": activate to sort column descending" => ": wybierz, aby posortować kolumnę malejąco",
 	/*
@@ -12,13 +13,13 @@ return array(
 	"Last" => "&raquo;",
 	"Next" => "&rsaquo;",
 	"Previous" => "&lsaquo;",
-	"No data available in table" => "Brak danych do wyświetlenia",
-	"Showing _START_ to _END_ of _TOTAL_ entries" => "Widoczne od <strong>_START_</strong> do <strong>_END_</strong> z <strong>_TOTAL_</strong> rekordów",
-	"Showing 0 to 0 of 0 entries" => "Wyświetlane 0 rekordów",
-	"(filtered from _MAX_ total entries)" => "(wyszukano z <strong>_MAX_</strong> wszystkich rekordów)",
-	"Show _MENU_ entries" => "Wyświetl _MENU_ na stronie",
+
 	"Loading..." => "Ładowanie danych...",
+	"No data available in table" => "Brak danych do wyświetlenia",
+	"No matching records found" => "Nie odnaleziono pasujących rekordów",
 	"Processing..." => "Przetwarzanie...",
 	"Search:" => "Wyszukaj:",
-	"No matching records found" => "Nie odnaleziono pasujących rekordów",
+	"Show _MENU_ entries" => "Wyświetl _MENU_ na stronie",
+	"Showing 0 to 0 of 0 entries" => "Wyświetlane 0 rekordów",
+	"Showing _START_ to _END_ of _TOTAL_ entries" => "Widoczne od <strong>_START_</strong> do <strong>_END_</strong> z <strong>_TOTAL_</strong> rekordów",
 );
