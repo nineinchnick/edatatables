@@ -40,9 +40,9 @@ class EDTPagination extends CPagination
 	{
 		if($this->_pageSize===self::DEFAULT_PAGE_SIZE || $recalculate)
 		{
-			if(isset($_REQUEST[$this->lengthVar]))
+			if(isset($_GET[$this->lengthVar]))
 			{
-				if(($this->_pageSize=(int)$_REQUEST[$this->lengthVar])<=0)
+				if(($this->_pageSize=(int)$_GET[$this->lengthVar])<=0)
 					$this->_pageSize=self::DEFAULT_PAGE_SIZE;
 			}
 			else
@@ -58,9 +58,26 @@ class EDTPagination extends CPagination
 	{
 		if(($this->_pageSize=$value)<=0)
 			$this->_pageSize=self::DEFAULT_PAGE_SIZE;
-		$_REQUEST[$this->lengthVar]=$this->_pageSize;
+		$_GET[$this->lengthVar]=$this->_pageSize;
+	}
+	
+	/**
+	 * @return integer total number of items. Defaults to 0.
+	 */
+	public function getItemCount()
+	{
+		return $this->_itemCount;
 	}
 
+	/**
+	 * @param integer $value total number of items.
+	 */
+	public function setItemCount($value)
+	{
+		if(($this->_itemCount=$value)<0)
+			$this->_itemCount=0;
+	}
+	
 	/**
 	 * @param boolean $recalculate whether to recalculate the current page based on the page size and item count.
 	 * @return integer the zero-based index of the current page. Defaults to 0.
@@ -69,9 +86,9 @@ class EDTPagination extends CPagination
 	{
 		if($this->_currentPage===null || $recalculate)
 		{
-			if(isset($_REQUEST[$this->pageVar]))
+			if(isset($_GET[$this->pageVar]))
 			{
-				$this->_currentPage=floor(intval($_REQUEST[$this->pageVar]) / $this->getPageSize());
+				$this->_currentPage=floor(intval($_GET[$this->pageVar]) / $this->getPageSize());
 				if($this->validateCurrentPage)
 				{
 					$pageCount=$this->getPageCount();
@@ -93,6 +110,14 @@ class EDTPagination extends CPagination
 	public function setCurrentPage($value)
 	{
 		$this->_currentPage=$value;
-		$_REQUEST[$this->pageVar]=$value+1;
+		$_GET[$this->pageVar]=$value+1;
+	}
+	
+	/**
+	 * @return integer number of pages
+	 */
+	public function getPageCount()
+	{
+		return (int)(($this->_itemCount+$this->_pageSize-1)/$this->_pageSize);
 	}
 }

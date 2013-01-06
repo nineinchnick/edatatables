@@ -55,7 +55,8 @@ table.table {
 }
 
 table.table thead tr {
-	background-color: #d9edf7;
+	background-color: #1A5E80;
+	color: #E8F4FA;
 }
 
 table.table thead .sorting,
@@ -79,16 +80,16 @@ table.dataTable th:active {
 }
 
 table.dataTable tbody tr.selected, table.dataTable tbody tr.selected td, table.dataTable tbody tr.selected th {
-	background-color: #DFF0D8;
+	background-color: #D1E9F6;
 }
 table.dataTable tbody tr:nth-child(2n+1).selected td, table.dataTable tbody tr:nth-child(2n+1).selected th {
-	background-color: #D6E9C6;
+	background-color: #B9DFF1;
 }
 
 table.dataTable tbody tr td[class*="sorting_"] {
-	background-color: #FCF8E3;
+	background-color: #F4FAFD;
 }
 
 table.dataTable tbody tr:nth-child(2n+1) td[class*="sorting_"], table.dataTable tbody tr:nth-child(2n+1) th[class*="sorting_"] {
-	background-color: #FBEED5;
+	background-color: #E8F4FA;
 }

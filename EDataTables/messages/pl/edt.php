@@ -22,4 +22,11 @@ return array(
 	"Show _MENU_ entries" => "Wyświetl _MENU_ na stronie",
 	"Showing 0 to 0 of 0 entries" => "Wyświetlane 0 rekordów",
 	"Showing _START_ to _END_ of _TOTAL_ entries" => "Widoczne od <strong>_START_</strong> do <strong>_END_</strong> z <strong>_TOTAL_</strong> rekordów",
+	"Only related" => "Tylko powiązane",
+	"History" => "Historia zmian",
+	"Refresh" => "Odśwież",
+	"Configure" => "Konfiguruj",
+	"Print" => "Drukuj",
+	"Save as CSV" => "Zapisz jako CSV",
+	"Add new" => "Dodaj nowy",
 );

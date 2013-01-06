@@ -34,12 +34,12 @@ class EDTSort extends CSort
 	public $sortVar='iSortingCols';
 
 	/**
-	 * @var string prefix for each REQUEST parameter denoting index in $columns property by which to sort
+	 * @var string prefix for each GET parameter denoting index in $columns property by which to sort
 	 */
 	public $sortVarIdxPrefix='iSortCol_';
 
 	/**
-	 * @var string prefix for each REQUEST parameter denoting direction of sort for a column
+	 * @var string prefix for each GET parameter denoting direction of sort for a column
 	 */
 	public $sortVarDirPrefix='sSortDir_';
 
@@ -68,10 +68,12 @@ class EDTSort extends CSort
 		if($this->_directions===null)
 		{
 			$this->_directions=array();
-			if ( $this->columns !== null && isset( $_REQUEST[$this->sortVar] ) && ($iSortingCols = intval($_REQUEST[$this->sortVar])) > 0) {
-				for ($i = 0; $i < $iSortingCols && isset($_REQUEST[$this->sortVarIdxPrefix.$i]) && isset($this->columns[intval( $_REQUEST[$this->sortVarIdxPrefix.$i] )]); ++$i) {
-					$index = intval($_REQUEST[$this->sortVarIdxPrefix.$i]);
-					$column = $this->columns[$index];
+			// treat columns as an indexed array, even if it's associative
+			$columns = is_array($this->columns) ? array_values($this->columns) : $this->columns;
+			if ( $columns !== null && isset( $_GET[$this->sortVar] ) && ($iSortingCols = intval($_GET[$this->sortVar])) > 0) {
+				for ($i = 0; $i < $iSortingCols && isset($_GET[$this->sortVarIdxPrefix.$i]) && isset($columns[intval( $_GET[$this->sortVarIdxPrefix.$i] )]); ++$i) {
+					$index = intval($_GET[$this->sortVarIdxPrefix.$i]);
+					$column = $columns[$index];
 					$attribute = null;
 					if (is_string($column) || isset($column['name'])) {
 						if (is_string($column)) {
@@ -86,7 +88,7 @@ class EDTSort extends CSort
 						//! @todo use FK for checkbox column? need to find it first
 					}
 					if($attribute !== null && ($this->resolveAttribute($attribute))!==false) {
-						$descending = isset($_REQUEST[$this->sortVarDirPrefix.$i]) && $_REQUEST[$this->sortVarDirPrefix.$i] == "desc";
+						$descending = isset($_GET[$this->sortVarDirPrefix.$i]) && $_GET[$this->sortVarDirPrefix.$i] == "desc";
 						$this->_directions[$attribute]=$descending;
 						if(!$this->multiSort)
 							return $this->_directions;
