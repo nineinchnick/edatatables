@@ -19,6 +19,14 @@ It's usable, but feedback is needed. Please post issues on [project's page](http
 
 ##Changes
 
+###0.9.1
+
+* removed fixed width on first column if selectableRows != 0
+* allow passing null to buttons option to disable all default buttons
+* fix default JS action on delete button in EButtonColumn
+* register select2 JS plugin from ESelect2 extension if configure button is enabled
+* removed all the JS code for drawing active forms in modal dialogs
+
 ###0.9.0
 
 * updated DataTables to 1.9.4
@@ -26,6 +34,9 @@ It's usable, but feedback is needed. Please post issues on [project's page](http
 * refactored and moved all ajax related code from the class file to the js plugin file
 * added refresh and search JS methods to trigger reloading of grid's contents
 * added column names to the dataTables definition, send their order and visibility to the server with every ajax request
+* added a static restoreStateSession method to save and restore pagination, sorting and columns order/visibility in/from session, see [the wiki](http://code.google.com/p/edatatables/wiki/stateSaving)
+* fixed retrieving key values from dataProvider
+* add an implementation of parse_str borrowed from CakePHP framework to restore contents of editable columns
 * changed every occurence of $\_REQUEST to $\_GET
 * fixed EDTPagination not storing itemCount properly
 * fixed delete button JavaScript callback that should refresh the grid's contents
@@ -44,7 +55,7 @@ It's usable, but feedback is needed. Please post issues on [project's page](http
 * fixed some JS code, all should work for now
 * by default, left only the refresh button in the toolbar located in the table header
 * updated the polish localization files to use &raquo; and &rsaquo; html entities, to be used as a template
-* started documenting features on the [wiki] (http://code.google.com/p/edatatables/w/list)
+* started documenting features on the [wiki](http://code.google.com/p/edatatables/w/list)
 
 ###0.8.2
 

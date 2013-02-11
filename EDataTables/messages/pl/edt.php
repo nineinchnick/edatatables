@@ -29,4 +29,8 @@ return array(
 	"Print" => "Drukuj",
 	"Save as CSV" => "Zapisz jako CSV",
 	"Add new" => "Dodaj nowy",
+	'Select all' => 'Zaznacz wszystkie',
+	'Deselect all' => 'Odznacz wszystkie',
+	'Select on page' => 'Zaznacz na stronie',
+	'Deselect on page' => 'Odznacz na stronie',
 );

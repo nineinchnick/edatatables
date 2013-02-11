@@ -431,10 +431,15 @@ $.extend( $.fn.dataTableExt.oPagination, {
 			if (configureRow.length == 0)
 				return false;
 
+			// if there is no toolbar there can't be the 'configure' button, so skip init
+			var toolbar = $('#'+id+' .dataTables_toolbar');
+			if (toolbar.length == 0)
+				return false;
+
 			// hide the first row and init a select2 control inside
 			configureRow.hide();
 			// if configure button was enabled, init a select2 control with columns list
-			if (typeof settings.buttons.configure == 'undefined') {
+			if (typeof settings.buttons.configure == 'undefined' || settings.buttons.configure == null) {
 				return false;
 			}
 			var oTable = $('#'+id+' table[id]').dataTable();
@@ -542,8 +547,8 @@ $.extend( $.fn.dataTableExt.oPagination, {
 				$('<input type="checkbox" id="'+id+'_relatedOnly" value="1"'+checked+'/><label for="'+id+'_relatedOnly">'+settings.relatedOnlyLabel+'</label>').appendTo(toolbar);
 			}
 			for (var i in settings.buttons) {
-				if (settings.buttons[i] == null || (i=='new' && (typeof settings.newUrl == 'undefined' || settings.newUrl == ''))) {
-					// skip if definition is missing (disabling defaults) or skip the new button if newUrl is not provided
+				if (settings.buttons[i] == null) {
+					// skip if definition is missing (disabling defaults)
 					continue;
 				}
 				var button = $($.fn.eDataTables.buttonToHtml(settings.buttons[i], settings.bootstrap)).appendTo(toolbar);
@@ -556,35 +561,11 @@ $.extend( $.fn.dataTableExt.oPagination, {
 						case 'refresh':	button.click(function(){$this.eDataTables('refresh'); return false;}); break;
 						case 'print':	button.click(function(){return false;}); break;
 						case 'export':	button.click(function(){return false;}); break;
-						case 'new':
-							button.click(function(){
-								return $.fn.eDataTables.editDialog(
-									{newUrl: settings.newUrl, saveUrl: settings.newUrl},
-									null,
-									function(data){
-										// add key of new item to selected items list
-										var input_selected = $('#' + id + '-selected');
-										var list_selected = input_selected.data('list');
-										if (typeof list_selected == 'undefined') list_selected = {};
-										list_selected[data.id] = data.id;
-										var list_selected_serialized = '';
-										for (var i in list_selected) {
-											list_selected_serialized += i + ',';
-										}
-										input_selected.val(list_selected_serialized).data('list',list_selected);
-										// refresh, new record will be fetched and selected
-// 											$('#'+id+' table[id]').dataTable().fnDraw();
-										$this.eDataTables('refresh');
-									},
-									$.extend(settings.ajaxOpts, {ajax:1}),
-									settings.bootstrap
-								);
-							});
-							break;
+						case 'new':		button.click(function(){return false;}); break;
 						default: break;
 					}
 				} else {
-					button.click(settings.buttons[i].callback);
+					button.click({'id': id, 'that': $this, 'settings': settings}, settings.buttons[i].callback);
 				}
 			}
 			if (settings.bootstrap) { //reinitialize tooltips and popovers
@@ -666,108 +647,6 @@ $.extend( $.fn.dataTableExt.oPagination, {
 				settings.selectionChanged(id);
 			return true;
 		},
-		/*
-		 * options = {
-		 *		urls - object with properties: {controller: '', editAction: '', saveAction: ''} OR {newUrl: '', saveUrl: ''}
-		 *		opts - options to append to submit data,
-		 *		afterSave - fn callback
-		 *		saveForm - fn which will be invoked to save form - can be omitted, then default will be used
-		 *		}
-		 */
-		editDialog: function(options){
-			var id = this.attr('id');
-			var settings = $.fn.eDataTables.settings[id];
-
-			if (!this.eDataTables('isSomeSelected') && !this.eDataTables('isAllSelected')){
-				alert('Zaznacz wiersze do edycji');
-				return;
-			}
-
-			if (typeof options == 'undefined')
-				options = {opts: {ajax: 1}}
-			if (typeof options.opts == 'undefined') {
-				options.opts = {ajax: 1};
-			}
-			/**
-			 * @todo baseUrl, action?
-			 */
-			var url = '';
-			if (typeof options.urls != 'undefined' && typeof options.urls.controller != 'undefined') {
-				url = '/'+options.urls.controller+'/' + (typeof options.urls.editAction != 'undefined' ? options.urls.editAction : 'edit') + '/' + id;
-			} else {
-				url = options.urls.newUrl;
-			}
-			var dialog;
-
-			var saveForm = typeof options.saveForm == 'function' ? options.saveForm : function() {
-				var $form = $('form', dialog);
-				$.fn.eDataTables.processYiiForm($form, function(f){return $.fn.eDataTables.saveYiiForm(f, dialog, settings.bootstrap, options.afterSave)});
-				/**
-				 * @todo disable this button until validation error or other submit cancelling event occurs
-				 */
-				return false;
-			};
-			if (!settings.bootstrap) {
-				dialog = $('<div style="display:none">Ładowanie danych ...</div>').appendTo('body');
-				// load remote content
-				dialog.dialog({
-					modal: true,
-					draggable: true,
-					resizable: true,
-					width: 900,
-					height: 600,
-					position: ['center', 60],
-					buttons: {
-						"Zapisz": saveForm,
-						"Anuluj": function() { /** @todo we should clear form timers before destroying it */ dialog.dialog("destroy").remove(); return false; }
-					},
-					close:function() { $(this).dialog('destroy').remove(); return false; }
-				});
-			} else {
-				var dialogContent = '<div class="modal hide fade" id="edt_new">'+
-	'	<div class="modal-header"><button type="button" class="close" aria-hidden="true">&times;</button><h3>Nowy</h3></div>'+
-	'	<div class="modal-body"><p>Ładowanie...</p></div>'+
-	'	<div class="modal-footer">'+
-	'		<button class="btn" aria-hidden="true">Anuluj</button>'+
-	'		<button class="btn btn-primary">Zapisz</button></div>'+
-	'</div>';
-				$(dialogContent).appendTo('body');
-				dialog = $('.modal-body');
-				$('#edt_new').modal('show');
-				$('#edt_new .btn').not('.btn-primary').click(function(){
-					$('#edt_new .btn-primary').off('click');
-					$('#edt_new').modal('hide').remove();
-				});
-				$('#edt_new .modal-header button').click(function(){
-					$('#edt_new .btn-primary').off('click');
-					$('#edt_new').modal('hide').remove();
-				});
-				$('#edt_new .btn-primary').click(saveForm);
-			}
-			dialog.load(url, options.opts, function(responseText, textStatus){
-				if (textStatus == 'error') {
-					try {
-						response = $.parseJSON(responseText);
-						dialog.html('<h3 style="color:red">'+response.error+'</h3>');
-					} catch(e) {
-						dialog.html('<h3 style="color:red">Wystąpił nieznany błąd.</h3><br/><br/><h3>Tego typu zdarzenia nie są rejestrowane, prosimy o zawiadomienie administratorów strony.</h3>');
-					}
-					return;
-				}
-				var $form = $('form',this);
-				var submitButton = $("button[type='submit']",$form);
-				/**
-				 * @todo before blocking form submit action check how it validates
-				 */
-				$form.submit(function(){return false;});
-				submitButton.parent().remove();
-				if (typeof options.urls.saveUrl != 'undefined') {
-					$form.attr('action', typeof options.urls.saveUrl == 'function' ? options.urls.saveUrl() : options.urls.saveUrl);
-				}
-			});
-
-			return false;
-		},
 
 		isAllSelected: function() {
 			var id = this.attr('id');
@@ -803,7 +682,12 @@ $.extend( $.fn.dataTableExt.oPagination, {
 			
 			return (selected_size != 0 && selected_size != total_records)
 					|| (all_selected && (deselected_size + disconnect_size != total_records) && (deselected_size + disconnect_size != 0));
+		},
+
+		settings: function(){
+			return $.fn.eDataTables.settings[this.attr('id')];
 		}
+
 	};
 
 	$.fn.eDataTables = function(method) {
@@ -1033,153 +917,6 @@ $.extend( $.fn.dataTableExt.oPagination, {
 		return false;
 	};
 
-	/**
-	 * Validates the form specified by id (typically the one containing this dataTable)
-	 * @todo this should be available in jquery.yiiactiveform.js
-	 * @param int id
-	 * @param function successCallback
-	 * @param function errorCallback
-	 */
-	$.fn.eDataTables.processYiiForm = function($form, successCallback, errorCallback) {
-		var settings = $form.data('settings');
-		if(settings!=undefined && settings.timer!=undefined) {
-			clearTimeout(settings.timer);
-		}
-		settings.submitting=true;
-		if(settings.beforeValidate==undefined || settings.beforeValidate($form)) {
-			$.fn.yiiactiveform.validate($form, function(data){
-				var hasError = false;
-				$.each(settings.attributes, function(i, attribute){
-					hasError = $.fn.yiiactiveform.updateInput(attribute, data, $form) || hasError;
-				});
-				$.fn.yiiactiveform.updateSummary($form, data);
-				if((settings.afterValidate==undefined || settings.afterValidate($form, data, hasError)) && !hasError) {
-					if (typeof successCallback == 'function')
-						successCallback($form);
-					settings.submitting=false;
-					return true;
-				} else if (typeof errorCallback == 'function') {
-					settings.submitting=false;
-					errorCallback();
-					return false;
-				}
-			}, errorCallback);
-			return true;
-		} else {
-			settings.submitting=false;
-			return false;
-		}
-	}
-
-	$.fn.eDataTables.saveYiiForm = function($form, dialog, bootstrap, afterSave) {
-		var params = $form.find('input').not('.dont-save').serialize() + '&ajax=1'
-		var saveUrl = $form.attr('action');
-		$.post(saveUrl, params, function(data, textStatus, jqXHR){
-			if (jqXHR.getResponseHeader('Content-Type') == 'text/html') {
-				// a form must have failed validation, redraw it
-				dialog.html(data);
-				dialog.scrollTop(0);
-			} else {
-				// we expect JSON
-				if (data.errno == 0){
-					if (typeof afterSave == 'function') {
-						afterSave(data.message);
-					}
-					if (bootstrap) {
-						dialog.parents('.modal:first').modal('hide').remove();
-					} else {
-						dialog.dialog('destroy').remove();
-					}
-				}
-			}
-		});
-		return false;
-	}
-
-	/**
-	 * @param urls an object with properties: {controller: '', editAction: '', saveAction: ''} OR {newUrl: '', saveUrl: ''} 
-	 */
-	$.fn.eDataTables.editDialog = function(urls, id, afterSave, opts, bootstrap){
-		if (typeof opts == 'undefined') {
-			opts = {ajax:1};
-		}
-		/**
-		 * @todo baseUrl, action?
-		 */
-		var url = '';
-		if (typeof urls.controller != 'undefined') {
-			url = '/'+urls.controller+'/' + (typeof urls.editAction != 'undefined' ? urls.editAction : 'edit') + (typeof id != 'undefined' && id != null ? '/'+id : '');
-		} else {
-			url = urls.newUrl;
-		}
-		var dialog;
-		var saveForm = function() {
-			var $form = $('form',dialog);
-			$.fn.eDataTables.processYiiForm($form, function(f){return $.fn.eDataTables.saveYiiForm(f, dialog, bootstrap, afterSave)});
-			/**
-			 * @todo disable this button until validation error or other submit cancelling event occurs
-			 */
-			return false;
-		};
-		if (!bootstrap) {
-			dialog = $('<div style="display:none">Ładowanie danych ...</div>').appendTo('body');
-			// load remote content
-			dialog.dialog({
-				modal: true,
-				draggable: true,
-				resizable: true,
-				width: 900,
-				height: 600,
-				position: ['center', 60],
-				buttons: {
-					"Zapisz": saveForm,
-					"Anuluj": function() { /** @todo we should clear form timers before destroying it */ dialog.dialog("destroy").remove(); return false; }
-				},
-				close:function() { $(this).dialog('destroy').remove(); return false; }
-			});
-		} else {
-			var dialogContent = '<div class="modal hide fade" id="edt_new">'+
-'	<div class="modal-header"><button type="button" class="close" aria-hidden="true">&times;</button><h3>Nowy</h3></div>'+
-'	<div class="modal-body"><p>Ładowanie...</p></div>'+
-'	<div class="modal-footer">'+
-'		<button class="btn" aria-hidden="true">Anuluj</button>'+
-'		<button class="btn btn-primary">Zapisz</button></div>'+
-'</div>';
-			$(dialogContent).appendTo('body');
-			dialog = $('.modal-body');
-			$('#edt_new').modal('show');
-			$('#edt_new .btn').not('.btn-primary').click(function(){
-				$('#edt_new').modal('hide').remove();
-			});
-			$('#edt_new .modal-header button').click(function(){
-				$('#edt_new').modal('hide').remove();
-			});
-			$('#edt_new .btn-primary').click(saveForm);
-		}
-		dialog.load(url, opts, function(responseText, textStatus){
-			if (textStatus == 'error') {
-				try {
-					response = $.parseJSON(responseText);
-					dialog.html('<h3 style="color:red">'+response.error+'</h3>');
-				} catch(e) {
-					dialog.html('<h3 style="color:red">Wystąpił nieznany błąd.</h3><br/><br/><h3>Tego typu zdarzenia nie są rejestrowane, prosimy o zawiadomienie administratorów strony.</h3>');
-				}
-				return;
-			}
-			var $form = $('form',this);
-			var submitButton = $("button[type='submit']",$form);
-			/**
-			 * @todo before blocking form submit action check how it validates
-			 */
-			$form.submit(function(){return false;});
-			submitButton.parent().remove();
-			if (typeof urls.saveUrl != 'undefined') {
-				$form.attr('action', typeof urls.saveUrl == 'function' ? urls.saveUrl() : urls.saveUrl);
-			}
-		});
-
-		return false;
-	}
 
 	$.fn.eDataTables.buttonToHtml = function(button, bootstrap) {
 		var htmlOptions = (typeof button.htmlOptions !== 'undefined' ? button.htmlOptions : {});

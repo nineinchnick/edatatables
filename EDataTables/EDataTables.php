@@ -15,8 +15,6 @@ Yii::import('ext.EDataTables.*');
  * EDataTables does the same thing as CGridView, but using the datatables.net control.
  * @todo translate original properties (events like beforeAjaxUpdate) to dataTables equivalents
  * @todo check for other features of CGridView (HTML classes, filters in headers, translations, pagers, summary etc.)
- * @todo refactor serverData, filterForm and filterColumnsMap properties
- * @todo a different set of columns for filters (filter by invisible columns)
  * @todo bbq support in DataTables
  *
  * docs todo:
@@ -24,7 +22,6 @@ Yii::import('ext.EDataTables.*');
  * @todo document usage of toolbar and its buttons (refresh, export, plot, new)
  * @todo document usage of filters
  * @todo document usage of checked rows with examples of server-side processing
- * @todo i18n support
  *
  * @author Jan Was <jwas@nets.com.pl>
  */
@@ -83,6 +80,9 @@ class EDataTables extends CGridView
 	 *            after an unsuccessful save (failed validation).
 	 */
 	public $unsavedChanges = array('all-selected'=>'','selected'=>'','deselected'=>'','disconnect'=>'','values'=>'');
+	/**
+	 * @var array if null, disables all default buttons, if an array, will be merged with default buttons (refresh, configure)
+	 */
 	public $buttons = array();
 
 	/**
@@ -186,7 +186,7 @@ class EDataTables extends CGridView
 				}
 			}
 		}
-		if (isset($_GET[$pagination->pageVar]) && isset($_GET[$pagination->lengthVar])) {
+		if ($pagination instanceof EDTPagination && isset($_GET[$pagination->pageVar]) && isset($_GET[$pagination->lengthVar])) {
 			// save state
 			$session[$id]['pagination'] = array(
 				'length' => $_GET[$pagination->lengthVar],
@@ -340,17 +340,6 @@ class EDataTables extends CGridView
 
 	protected function initColumnsJS() {
 		$columnDefs = array();
-		if ($this->selectableRows) {
-			$columnDefs[] = array(
-				"sWidth"		=> '20px',
-				"bSearchable"	=> false,
-				"bSortable"		=> false,
-				/*
-				"fnRender"		=> "js:function(oObj){return $.eDataTables.renderCheckBoxCell('{$this->getId()}', oObj);}",
-				 */
-				"aTargets"		=> array(0),
-			);
-		}
 		if (isset($this->editableColumns) && !empty($this->editableColumns)) {
 			$columnDefs[] = array(
 				"fnRender"	=> "js:function(oObj) {return $('#{$this->getId()}').eDataTables('renderEditableCell', '{$this->getId()}', oObj);}",
@@ -368,7 +357,12 @@ class EDataTables extends CGridView
 		$cssClasses = array();
 		$groupColumns = array();
 		foreach($this->columns as $i=>$column) {
-			$columnDefs[] = array( "sName" => property_exists($column, 'name') ? $column->name : 'unnamed'.$i, "aTargets" => array($i) );
+			if (property_exists($column, 'name') && trim($column->name)!=='') {
+				$sName = $column->name;
+			} else {
+				$sName = 'unnamed'.$i;
+			}
+			$columnDefs[] = array( "sName" => $sName, "aTargets" => array($i) );
 			if(!$column->visible) {
 				$hiddenColumns[] = $i;
 			}
@@ -485,8 +479,13 @@ class EDataTables extends CGridView
 			$options['url']=CHtml::normalizeUrl($this->ajaxUrl);
 		if($this->updateSelector!==null)
 			$options['updateSelector']=$this->updateSelector;
-		if($this->enablePagination)
-			$options['pageVar']=$this->dataProvider->getPagination()->pageVar;
+		if($this->enablePagination) {
+			$pagination = $this->dataProvider->getPagination();
+			if ($pagination instanceof EDTPagination) {
+				$options[$pagination->pageVar]=$pagination->getCurrentPage()*$pagination->getPageSize();
+				$options[$pagination->lengthVar]=$pagination->getPageSize();
+			}
+		}
 		if($this->bootstrap)
 			$options['sPaginationType'] = 'bootstrap';
 		if ($this->datatableTemplate)
@@ -507,43 +506,49 @@ class EDataTables extends CGridView
 			$options['filterForm']=$this->filterForm;
 		if(isset($_GET['sSearch']))
 			$options['oSearch']=array('sSearch'=>$_GET['sSearch']);
-		$options['buttons']=array_merge(array(
-			'refresh' => array(
-				'label' => Yii::t('EDataTables.edt',"Refresh"),
-				'text' => false,
-				'htmlClass' => 'refreshButton',
-				'icon' => $this->bootstrap ? 'icon-refresh' : 'ui-icon-refresh',
-				'callback' => null //default will be used, if possible
-			),
-			'configure' => array(
-				'label' => Yii::t('EDataTables.edt',"Configure"),
-				'text' => false,
-				'htmlClass' => 'configureButton',
-				'icon' => $this->bootstrap ? 'icon-cog' : 'ui-icon-cog',
-				'callback' => null //default will be used, if possible
-			),
-			'print' => array(
-				'label' => Yii::t('EDataTables.edt',"Print"),
-				'text' => false,
-				'htmlClass' => 'printButton',
-				'icon' => $this->bootstrap ? 'icon-print' : 'ui-icon-print',
-				'callback' => null //default will be used, if possible
-			),
-			'export' => array(
-				'label' => Yii::t('EDataTables.edt',"Save as CSV"),
-				'text' => false,
-				'htmlClass' => 'exportButton',
-				'icon' => $this->bootstrap ? 'icon-download-alt' : 'ui-icon-disk',
-				'callback' => null //default will be used, if possible
-			),
-			'new' => array(
-				'label' => Yii::t('EDataTables.edt',"Add new"),
-				'text' => true,
-				'htmlClass' => 'newButton',
-				'icon' => $this->bootstrap ? 'icon-plus' : 'ui-icon-document',
-				'callback' => null //default will be used, if possible
-			)
-		),$this->buttons);
+		if ($this->buttons === null) {
+			$options['buttons']=array();
+		} else {
+			$options['buttons']=array_merge(array(
+				'refresh' => array(
+					'label' => Yii::t('EDataTables.edt',"Refresh"),
+					'text' => false,
+					'htmlClass' => 'refreshButton',
+					'icon' => $this->bootstrap ? 'icon-refresh' : 'ui-icon-refresh',
+					'callback' => null //default will be used, if possible
+				),
+				'configure' => array(
+					'label' => Yii::t('EDataTables.edt',"Configure"),
+					'text' => false,
+					'htmlClass' => 'configureButton',
+					'icon' => $this->bootstrap ? 'icon-cog' : 'ui-icon-cog',
+					'callback' => null //default will be used, if possible
+				),
+				/*
+				'print' => array(
+					'label' => Yii::t('EDataTables.edt',"Print"),
+					'text' => false,
+					'htmlClass' => 'printButton',
+					'icon' => $this->bootstrap ? 'icon-print' : 'ui-icon-print',
+					'callback' => null //default will be used, if possible
+				),
+				'export' => array(
+					'label' => Yii::t('EDataTables.edt',"Save as CSV"),
+					'text' => false,
+					'htmlClass' => 'exportButton',
+					'icon' => $this->bootstrap ? 'icon-download-alt' : 'ui-icon-disk',
+					'callback' => null //default will be used, if possible
+				),
+				'new' => array(
+					'label' => Yii::t('EDataTables.edt',"Add new"),
+					'text' => true,
+					'htmlClass' => 'newButton',
+					'icon' => $this->bootstrap ? 'icon-plus' : 'ui-icon-document',
+					'callback' => null //default will be used, if possible
+				),
+				*/
+			),$this->buttons);
+		}
 		$configurable = isset($options['buttons']['configure']) && $options['buttons']['configure'] !== null;
 		if ($configurable) {
 			// block draggable column headers
@@ -601,6 +606,9 @@ class EDataTables extends CGridView
 		$cs->registerScriptFile($baseScriptUrl.'/jquery.dataTables'.(YII_DEBUG ? '' : '.min' ).'.js');
 		if ($configurable) {
 			$cs->registerScriptFile($baseScriptUrl.'/ColReorder'.(YII_DEBUG ? '' : '.min' ).'.js');
+			$selectBaseUrl = Yii::app()->getAssetManager()->publish(Yii::getPathOfAlias('ext.select2').'/assets');
+			$cs->registerCssFile($selectBaseUrl . '/select2.css');
+			$cs->registerScriptFile($selectBaseUrl . '/select2.'.(YII_DEBUG ? 'min.' : '').'js');
 		}
 		$cs->registerScriptFile($baseScriptUrl.'/jquery.fnSetFilteringDelay.js');
 		$cs->registerScriptFile($baseScriptUrl.'/jdatatable.js',CClientScript::POS_END);
