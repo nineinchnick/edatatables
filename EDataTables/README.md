@@ -10,6 +10,7 @@ It's usable, but feedback is needed. Please post issues on [project's page](http
 * Smoothness theme from JUI by default
 * Twitter Bootstrap support through the [bootstrap extension](http://www.yiiframework.com/extension/bootstrap)
 * Partial editable cells support.
+* Much more, check the docs on the [project's page](http://code.google.com/p/edatatables).
 
 ##Requirements
 
@@ -18,6 +19,15 @@ It's usable, but feedback is needed. Please post issues on [project's page](http
 * (optional) [Select2 extension](http://www.yiiframework.com/extension/select2) for column visibility and order configuration
 
 ##Changes
+
+###0.9.3
+
+* re-enabled afterDelete callback in delete button in EButtonColumn
+
+###0.9.2
+
+* re-enabled beforeAjaxUpdate option
+* disabled default configure button, as this requires the select2 extension
 
 ###0.9.1
 
@@ -144,7 +154,7 @@ Check out the [DataTables web page](http://datatables.net) for docs regarding:
 * Table layout
 * Styling
 * Multi-column sorting etc.
-* Tons of examples and funky plugins
+* Some examples and funky plugins
 
 ##Resources
 

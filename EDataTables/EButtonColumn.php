@@ -74,8 +74,11 @@ class EButtonColumn extends CButtonColumn {
 			$this->buttons['delete']['click']=<<<JavaScript
 function() {
 	$confirmation
-	$.getJSON($(this).attr('href'), function(){
+	var th = this,
+		afterDelete = $this->afterDelete;
+	$.getJSON($(this).attr('href'), function(data){
 		jQuery('#{$this->grid->id}').eDataTables('refresh');
+		afterDelete(th, true, data);
 	});
 	return false;
 }

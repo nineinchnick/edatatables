@@ -490,10 +490,8 @@ class EDataTables extends CGridView
 			$options['sPaginationType'] = 'bootstrap';
 		if ($this->datatableTemplate)
 			$options['sDom'] = $this->datatableTemplate;
-		// not used in jdatatables.js, used in fnServerData set below
-		//! @todo as of datatables 1.9.0 fnServerData could be simplified, since we only modify aoData's properties
-		//if($this->beforeAjaxUpdate!==null)
-		//	$options['beforeAjaxUpdate']=(strpos($this->beforeAjaxUpdate,'js:')!==0 ? 'js:' : '').$this->beforeAjaxUpdate;
+		if($this->beforeAjaxUpdate!==null)
+			$options['beforeAjaxUpdate']=(strpos($this->beforeAjaxUpdate,'js:')!==0 ? 'js:' : '').$this->beforeAjaxUpdate;
 		if($this->afterAjaxUpdate!==null)
 			$options['afterAjaxUpdate']=(strpos($this->afterAjaxUpdate,'js:')!==0 ? 'js:' : '').$this->afterAjaxUpdate;
 		if($this->ajaxUpdateError!==null)
@@ -517,13 +515,13 @@ class EDataTables extends CGridView
 					'icon' => $this->bootstrap ? 'icon-refresh' : 'ui-icon-refresh',
 					'callback' => null //default will be used, if possible
 				),
-				'configure' => array(
+				/*'configure' => array(
 					'label' => Yii::t('EDataTables.edt',"Configure"),
 					'text' => false,
 					'htmlClass' => 'configureButton',
 					'icon' => $this->bootstrap ? 'icon-cog' : 'ui-icon-cog',
 					'callback' => null //default will be used, if possible
-				),
+				),*/
 				/*
 				'print' => array(
 					'label' => Yii::t('EDataTables.edt',"Print"),
