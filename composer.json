@@ -1,6 +1,7 @@
 {
     "name": "nineinchnick/edatatables",
     "description": "Grid widget for the Yii Framework, wrapper for the DataTables jQuery plugin",
+	"version": "0.9.3",
     "license": "BSD-3-Clause",
     "authors": [
         {
@@ -9,6 +10,6 @@
         }
     ],
     "require": {
-
+		"php": ">=5.3.0",
     }
 }
