@@ -1,0 +1,14 @@
+{
+    "name": "nineinchnick/edatatables",
+    "description": "Grid widget for the Yii Framework, wrapper for the DataTables jQuery plugin",
+    "license": "BSD-3-Clause",
+    "authors": [
+        {
+            "name": "Jan Waś",
+            "email": "janek.jan@gmail.com"
+        }
+    ],
+    "require": {
+
+    }
+}
