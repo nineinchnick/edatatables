@@ -1,0 +1,95 @@
+
+div.dataTables_length label {
+	float: left;
+	text-align: left;
+}
+
+div.dataTables_length select {
+	width: 75px;
+	display: inline;
+}
+
+div.dataTables_filter label {
+	float: right;
+}
+
+div.dataTables_info {
+	padding-top: 8px;
+}
+
+div.dataTables_paginate {
+	float: right;
+	margin: 0;
+}
+
+.dataTables_wrapper {
+	position: relative;
+	clear: both;
+	zoom: 1; /* Feeling sorry for IE */
+}
+
+.dataTables_processing {
+	position: absolute;
+	top: 10%;
+	left: 50%;
+	width: 250px;
+	height: 30px;
+	margin-left: -125px;
+	margin-top: -15px;
+	padding: 14px 0 2px 0;
+	border: 1px solid #ddd;
+	text-align: center;
+	color: #999;
+	font-size: 14px;
+	background-color: white;
+}
+
+div.dataTables_toolbar {
+	float: right;
+	padding-left: 5px;
+}
+
+table.table {
+	clear: both;
+	margin-bottom: 6px !important;
+}
+
+table.table thead tr {
+	background-color: #1A5E80;
+	color: #E8F4FA;
+}
+
+table.table thead .sorting,
+table.table thead .sorting_asc,
+table.table thead .sorting_desc,
+table.table thead .sorting_asc_disabled,
+table.table thead .sorting_desc_disabled {
+	cursor: pointer;
+	*cursor: hand;
+}
+
+table.table thead .sorting { background: url('images/sort_both.png') no-repeat center right; }
+table.table thead .sorting_asc { background: url('images/sort_asc.png') no-repeat center right; }
+table.table thead .sorting_desc { background: url('images/sort_desc.png') no-repeat center right; }
+
+table.table thead .sorting_asc_disabled { background: url('images/sort_asc_disabled.png') no-repeat center right; }
+table.table thead .sorting_desc_disabled { background: url('images/sort_desc_disabled.png') no-repeat center right; }
+
+table.dataTable th:active {
+	outline: none;
+}
+
+table.dataTable tbody tr.selected, table.dataTable tbody tr.selected td, table.dataTable tbody tr.selected th {
+	background-color: #D1E9F6;
+}
+table.dataTable tbody tr:nth-child(2n+1).selected td, table.dataTable tbody tr:nth-child(2n+1).selected th {
+	background-color: #B9DFF1;
+}
+
+table.dataTable tbody tr td[class*="sorting_"] {
+	background-color: #F4FAFD;
+}
+
+table.dataTable tbody tr:nth-child(2n+1) td[class*="sorting_"], table.dataTable tbody tr:nth-child(2n+1) th[class*="sorting_"] {
+	background-color: #E8F4FA;
+}
