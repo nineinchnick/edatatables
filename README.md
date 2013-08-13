@@ -19,6 +19,13 @@ It's usable, but feedback is needed. Please post issues on [project's page](http
 
 ##Changes
 
+###0.9.5
+
+* improved bootstrap support
+* refactored buttons configuration
+* add dropdowns rendered in column headers
+* removed select2 dependency
+
 ###0.9.3
 
 * re-enabled afterDelete callback in delete button in EButtonColumn
