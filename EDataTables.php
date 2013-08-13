@@ -101,6 +101,11 @@ class EDataTables extends CGridView
 	 */
 	public $fixedHeaders;
 
+	/**
+	 * @var boolean If true, toolbar will contain a multiselect to choose visible columns and column headers will be sortable.
+	 */
+	public $configurable = false;
+
 	public function init() {
 		// check if a cookie exist holding some options and explode it into GET
 		// must be done before parent::init(), because it calls initColumns and it calls dataProvider->getData()
@@ -268,7 +273,6 @@ class EDataTables extends CGridView
 					$this->columns=array_keys($data[0]);
 			}
 		}
-		$id=$this->getId();
 		foreach($this->columns as $i=>$column)
 		{
 			if(is_string($column))
@@ -287,7 +291,7 @@ class EDataTables extends CGridView
 				}
 			}
 			if($column->id===null)
-				$column->id=$id.'_c'.$i;
+				$column->id=$this->getId().'_c'.$i;
 			if (isset($column->type) && in_array($column->type,array('dec2','dec3','dec5','integer','number'))) {
 				// all numeric types gets aligned right by default
 				//if (!isset($column->headerHtmlOptions['class']))
@@ -357,16 +361,16 @@ class EDataTables extends CGridView
 		$cssClasses = array();
 		$groupColumns = array();
 		foreach($this->columns as $i=>$column) {
-			if (property_exists($column, 'name') && trim($column->name)!=='') {
-				$sName = $column->name;
-			} else {
-				$sName = 'unnamed'.$i;
-			}
-			$columnDefs[] = array( "sName" => $sName, "aTargets" => array($i) );
+			$hasName = property_exists($column, 'name') && trim($column->name)!=='';
+			$sName = $hasName ? $column->name : 'unnamed'.$i;
+			$columnDefs[] = array(
+				"sName" => $sName,
+				"aTargets" => array($i),
+			);
 			if(!$column->visible) {
 				$hiddenColumns[] = $i;
 			}
-			if (!property_exists($column,'sortable') || !$column->sortable){
+			if (!$this->enableSorting || !$hasName || !property_exists($column,'sortable') || !$column->sortable || $this->dataProvider->getSort()->resolveAttribute($column->name) === false) {
 				$nonsortableColumns[] = $i;
 			} else if (isset($defaultOrder[$column->name])) {
 				$sortedColumns[$defaultOrder[$column->name] == CSort::SORT_ASC ? 'asc' : 'desc'][] = $i;
@@ -405,12 +409,61 @@ class EDataTables extends CGridView
 		return $columnDefs;
 	}
 
+	public function initToolbarButtons() {
+		if ($this->buttons === null) {
+			return array();
+		}
+		return array_merge(array(
+			'refresh' => array(
+				'label' => Yii::t('EDataTables.edt',"Refresh"),
+				'text' => false,
+				'htmlClass' => 'refreshButton',
+				'icon' => $this->bootstrap ? 'icon-refresh' : 'ui-icon-refresh',
+				'callback' => 'js:function(e){e.data.that.eDataTables("refresh"); return false;}',
+			),
+			/*'configure' => array(
+				'label' => Yii::t('EDataTables.edt',"Configure"),
+				'text' => false,
+				'htmlClass' => 'configureButton',
+				'icon' => $this->bootstrap ? 'icon-cog' : 'ui-icon-cog',
+				'callback' => null //default will be used, if possible
+			),*/ // moved to a standalone property as a boolean, initialized in toolbar from JS
+			/*
+			'print' => array(
+				'label' => Yii::t('EDataTables.edt',"Print"),
+				'text' => false,
+				'htmlClass' => 'printButton',
+				'icon' => $this->bootstrap ? 'icon-print' : 'ui-icon-print',
+				'callback' => null //default will be used, if possible
+			),
+			'export' => array(
+				'label' => Yii::t('EDataTables.edt',"Save as CSV"),
+				'text' => false,
+				'htmlClass' => 'exportButton',
+				'icon' => $this->bootstrap ? 'icon-download-alt' : 'ui-icon-disk',
+				'callback' => null //default will be used, if possible
+			),
+			'new' => array(
+				'label' => Yii::t('EDataTables.edt',"Add new"),
+				'text' => true,
+				'htmlClass' => 'newButton',
+				'icon' => $this->bootstrap ? 'icon-plus' : 'ui-icon-document',
+				'callback' => null //default will be used, if possible
+			),
+			*/
+		),$this->buttons);
+	}
+
 	/**
 	 * Registers necessary client scripts.
 	 */
 	public function registerClientScript()
 	{
 		$id=$this->getId();
+
+		//filter out non visible buttons
+		$buttons = array_filter($this->initToolbarButtons(), function($btn) {return !isset($btn['visible']) || $btn['visible'] != false; });
+
 		$columnDefs = $this->initColumnsJS();
 		if (isset($this->options['aoColumnDefs'])) {
 			$this->options['aoColumnDefs'] = array_merge($columnDefs, $this->options['aoColumnDefs']);
@@ -439,6 +492,7 @@ class EDataTables extends CGridView
 			'sCookiePrefix'		=> 'edt_',
 			'bJQueryUI'			=> !$this->bootstrap,
 			'relatedOnlyLabel'	=> Yii::t('EDataTables.edt', 'Only related'),
+			'buttons'			=> $buttons,
 		);
 		if (Yii::app()->getLanguage() !== 'en_us') {
 			// those are the defaults in the DataTables plugin JS source,
@@ -504,54 +558,12 @@ class EDataTables extends CGridView
 			$options['filterForm']=$this->filterForm;
 		if(isset($_GET['sSearch']))
 			$options['oSearch']=array('sSearch'=>$_GET['sSearch']);
-		if ($this->buttons === null) {
-			$options['buttons']=array();
-		} else {
-			$options['buttons']=array_merge(array(
-				'refresh' => array(
-					'label' => Yii::t('EDataTables.edt',"Refresh"),
-					'text' => false,
-					'htmlClass' => 'refreshButton',
-					'icon' => $this->bootstrap ? 'icon-refresh' : 'ui-icon-refresh',
-					'callback' => null //default will be used, if possible
-				),
-				/*'configure' => array(
-					'label' => Yii::t('EDataTables.edt',"Configure"),
-					'text' => false,
-					'htmlClass' => 'configureButton',
-					'icon' => $this->bootstrap ? 'icon-cog' : 'ui-icon-cog',
-					'callback' => null //default will be used, if possible
-				),*/
-				/*
-				'print' => array(
-					'label' => Yii::t('EDataTables.edt',"Print"),
-					'text' => false,
-					'htmlClass' => 'printButton',
-					'icon' => $this->bootstrap ? 'icon-print' : 'ui-icon-print',
-					'callback' => null //default will be used, if possible
-				),
-				'export' => array(
-					'label' => Yii::t('EDataTables.edt',"Save as CSV"),
-					'text' => false,
-					'htmlClass' => 'exportButton',
-					'icon' => $this->bootstrap ? 'icon-download-alt' : 'ui-icon-disk',
-					'callback' => null //default will be used, if possible
-				),
-				'new' => array(
-					'label' => Yii::t('EDataTables.edt',"Add new"),
-					'text' => true,
-					'htmlClass' => 'newButton',
-					'icon' => $this->bootstrap ? 'icon-plus' : 'ui-icon-document',
-					'callback' => null //default will be used, if possible
-				),
-				*/
-			),$this->buttons);
-		}
-		$configurable = isset($options['buttons']['configure']) && $options['buttons']['configure'] !== null;
-		if ($configurable) {
+		if ($this->configurable) {
+			$options['configurable'] = true;
 			// block draggable column headers
 			$options['oColReorder'] = array(
-				'iFixedColumns' => count($this->columns)
+				//'iFixedColumns' => count($this->columns)
+				'fnReorderCallback' => "js:function(){\$('#{$this->getId()}').eDataTables('refresh');}",
 			);
 			$options['sDom'] .= 'R';
 		}
@@ -574,7 +586,7 @@ class EDataTables extends CGridView
 		$options['fnServerParams'] = "js:function(aoData){return $('#{$this->getId()}').eDataTables('serverParams', aoData);}";
 		$options['fnServerData'] = "js:function(sSource, aoData, fnCallback){return $('#{$this->getId()}').eDataTables('serverData', sSource, aoData, fnCallback);}";
 		
-		self::initClientScript($this->bootstrap, $this->fixedHeaders !== null, $configurable);
+		self::initClientScript($this->bootstrap, $this->fixedHeaders !== null, $this->configurable);
 		$options=CJavaScript::encode($options);
 		$cs=Yii::app()->getClientScript();
 		$cs->registerScript(__CLASS__.'#'.$id,"jQuery('#$id').eDataTables($options);");
@@ -604,12 +616,12 @@ class EDataTables extends CGridView
 		$cs->registerScriptFile($baseScriptUrl.'/jquery.dataTables'.(YII_DEBUG ? '' : '.min' ).'.js');
 		if ($configurable) {
 			$cs->registerScriptFile($baseScriptUrl.'/ColReorder'.(YII_DEBUG ? '' : '.min' ).'.js');
-			$selectBaseUrl = Yii::app()->getAssetManager()->publish(Yii::getPathOfAlias('ext.select2').'/assets');
-			$cs->registerCssFile($selectBaseUrl . '/select2.css');
-			$cs->registerScriptFile($selectBaseUrl . '/select2.'.(YII_DEBUG ? 'min.' : '').'js');
+			//ESelect2::initClientScript();
+			//Yii::import('ext.TbMultiselect.TbMultiselect');
+			//TbMultiselect::initClientScript();
 		}
 		$cs->registerScriptFile($baseScriptUrl.'/jquery.fnSetFilteringDelay.js');
-		$cs->registerScriptFile($baseScriptUrl.'/jdatatable.js',CClientScript::POS_END);
+		$cs->registerScriptFile($baseScriptUrl.'/jdatatable.js', CClientScript::POS_END);
 		if ($fixedHeaders !== null) {
 			//$cs->registerScriptFile($baseScriptUrl.'/FixedHeader'.(YII_DEBUG ? '' : '.min').'.js');
 			//$cs->registerScriptFile($baseScriptUrl.'/FixedColumns'.(YII_DEBUG ? '' : '.min').'.js');

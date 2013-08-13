@@ -70,10 +70,18 @@ class EDTSort extends CSort
 			$this->_directions=array();
 			// treat columns as an indexed array, even if it's associative
 			$columns = is_array($this->columns) ? array_values($this->columns) : $this->columns;
+			// reindex them using only visible columns
+			$visibleIndex = array();
+			for ($i = 0, $columnsCount = count($columns); $i < $columnsCount; $i++) {
+				if (!is_array($columns[$i]) || !isset($columns[$i]['visible']) || $columns[$i]['visible']) {
+					$visibleIndex[] = $i;
+				}
+			}
 			if ( $columns !== null && isset( $_GET[$this->sortVar] ) && ($iSortingCols = intval($_GET[$this->sortVar])) > 0) {
 				for ($i = 0; $i < $iSortingCols && isset($_GET[$this->sortVarIdxPrefix.$i]) && isset($columns[intval( $_GET[$this->sortVarIdxPrefix.$i] )]); ++$i) {
 					$index = intval($_GET[$this->sortVarIdxPrefix.$i]);
-					$column = $columns[$index];
+					if (!isset($visibleIndex[$index]) || !isset($columns[$visibleIndex[$index]])) continue;
+					$column = $columns[$visibleIndex[$index]];
 					$attribute = null;
 					if (is_string($column) || isset($column['name'])) {
 						if (is_string($column)) {

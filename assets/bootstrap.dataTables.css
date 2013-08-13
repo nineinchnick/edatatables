@@ -55,8 +55,8 @@ table.table {
 }
 
 table.table thead tr {
-	background-color: #1A5E80;
-	color: #E8F4FA;
+	/*background-color: #1A5E80;
+	color: #E8F4FA;*/
 }
 
 table.table thead .sorting,
@@ -68,12 +68,12 @@ table.table thead .sorting_desc_disabled {
 	*cursor: hand;
 }
 
-table.table thead .sorting { background: url('images/sort_both.png') no-repeat center right; }
-table.table thead .sorting_asc { background: url('images/sort_asc.png') no-repeat center right; }
-table.table thead .sorting_desc { background: url('images/sort_desc.png') no-repeat center right; }
+table.table thead .sorting { background: url('images/bootstrap/sort_both.png') no-repeat center right; padding-right: 1.3em; }
+table.table thead .sorting_asc { background: url('images/bootstrap/sort_asc.png') no-repeat center right; padding-right: 1.3em; }
+table.table thead .sorting_desc { background: url('images/bootstrap/sort_desc.png') no-repeat center right; padding-right: 1.3em; }
 
-table.table thead .sorting_asc_disabled { background: url('images/sort_asc_disabled.png') no-repeat center right; }
-table.table thead .sorting_desc_disabled { background: url('images/sort_desc_disabled.png') no-repeat center right; }
+table.table thead .sorting_asc_disabled { background: url('images/bootstrap/sort_asc_disabled.png') no-repeat center right; padding-right: 1.3em; }
+table.table thead .sorting_desc_disabled { background: url('images/bootstrap/sort_desc_disabled.png') no-repeat center right; padding-right: 1.3em; }
 
 table.dataTable th:active {
 	outline: none;

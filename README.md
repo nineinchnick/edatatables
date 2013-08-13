@@ -10,7 +10,6 @@ It's usable, but feedback is needed. Please post issues on [project's page](http
 * Smoothness theme from JUI by default
 * Twitter Bootstrap support through the [bootstrap extension](http://www.yiiframework.com/extension/bootstrap)
 * Partial editable cells support.
-* Much more, check the docs on the [project's page](http://code.google.com/p/edatatables).
 
 ##Requirements
 

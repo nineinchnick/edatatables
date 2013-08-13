@@ -25,6 +25,29 @@ class EEditableColumn extends EDataColumn {
 	public $dynamicType;
 
 	/**
+	 * @var boolean If true, column header will contain a dropdown menu.
+	 * Its contents should be rendered using JavaScript.
+	 */
+	public $dropdown;
+
+	/**
+	 * Renders the header cell.
+	 */
+	public function renderHeaderCell()
+	{
+		$this->headerHtmlOptions['id']=$this->id;
+		echo CHtml::openTag('th',$this->headerHtmlOptions);
+		if ($this->dropdown) {
+			echo '<div class="btn-group">
+				<a class="btn btn-mini dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>
+				<ul class="dropdown-menu"></ul>
+			</div> ';
+		}
+		$this->renderHeaderCellContent();
+		echo "</th>";
+	}
+
+	/**
 	 * Renders a data cell.
 	 * @param integer $row the row number (zero-based)
 	 */

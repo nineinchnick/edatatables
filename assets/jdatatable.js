@@ -216,11 +216,16 @@ $.extend( $.fn.dataTableExt.oPagination, {
 
 			// -----------------------
 			// configuration
-			$this.eDataTables('initConfigRow', settings);
+			//! @todo remove this, moved into initToolbar
+			//$this.eDataTables('initConfigRow', settings);
 
 			// -----------------------
 			// toolbar
 			$this.eDataTables('initToolbar', settings);
+
+			// -----------------------
+			// init dropdowns in column headers
+			$this.eDataTables('initColumnHeaders', settings);
 
 			//deselect all rows on filtering
 			$('div.dataTables_filter input[type=text]').on('keyup', function(e) {
@@ -457,13 +462,15 @@ $.extend( $.fn.dataTableExt.oPagination, {
 					visible.push({id: aoColumns[i].sName, text: aoColumns[i].sTitle});
 				}
 			}
-			var configList = $('<input type="hidden" value="'+value.join(',')+'">').appendTo(configureRow);
+			var configList = $('<input id="'+id+'_configRow" type="hidden" value="'+value.join(',')+'">').appendTo(configureRow);
 			// obtain a list of visible columns
 			// add a hidden input
 			// init select2
 			configList.select2({
 				data: data,
 				multiple: true,
+				//width: '10%',
+				dropdownAutoWidth: true,
 				initSelection: function(element, callback) { callback(visible); }
 			}).on("change", function(e) {
 				var aoColumns = oTable.fnSettings().aoColumns;
@@ -526,6 +533,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
 				}
 				// make a complete refresh so the backend can save all UI changes
 				$this.eDataTables('refresh');
+				return true;
 			});
 			configList.select2("container").find("ul.select2-choices").sortable({
 				containment: 'parent',
@@ -541,11 +549,25 @@ $.extend( $.fn.dataTableExt.oPagination, {
 			var toolbar = $('#'+id+' .dataTables_toolbar');
 			if (toolbar.length == 0)
 				return false;
+
+			$this.eDataTables('initConfigControl', settings, toolbar);
 			
 			if (settings.relatedOnlyOption) {
 				var checked = settings.relatedOnlyOption == '2' ? ' checked="checked"' : '';
 				$('<input type="checkbox" id="'+id+'_relatedOnly" value="1"'+checked+'/><label for="'+id+'_relatedOnly">'+settings.relatedOnlyLabel+'</label>').appendTo(toolbar);
 			}
+
+			$this.eDataTables('initButtons', settings, toolbar);
+
+			if (settings.bootstrap) { //reinitialize tooltips and popovers
+				$('#'+id+' a[rel=tooltip]').tooltip();
+				$('#'+id+' a[rel=popover]').popover();
+			}
+		},
+
+		initButtons: function(settings, toolbar) {
+			var $this = $(this);
+			var id = this.attr('id');
 			for (var i in settings.buttons) {
 				if (settings.buttons[i] == null) {
 					// skip if definition is missing (disabling defaults)
@@ -555,26 +577,88 @@ $.extend( $.fn.dataTableExt.oPagination, {
 				if (!settings.bootstrap) {
 					button.button({icons: {primary:settings.buttons[i].icon}, text: settings.buttons[i].text});
 				}
-				if (settings.buttons[i].callback == null) {
-					switch(i) {
-						case 'configure':	button.click(function(){$('#'+id+' > div.dataTables_wrapper > div:first').toggle(); return false;}); break;
-						case 'refresh':	button.click(function(){$this.eDataTables('refresh'); return false;}); break;
-						case 'print':	button.click(function(){return false;}); break;
-						case 'export':	button.click(function(){return false;}); break;
-						case 'new':		button.click(function(){return false;}); break;
-						default: break;
-					}
-				} else {
+				if (typeof settings.buttons[i].callback != 'undefined') {
 					button.click({'id': id, 'that': $this, 'settings': settings}, settings.buttons[i].callback);
 				}
 			}
-			if (settings.bootstrap) { //reinitialize tooltips and popovers
-				$('a[rel=tooltip]').tooltip();
-				$('a[rel=popover]').popover();
+			return true;
+		},
+
+		initConfigControl: function(settings, toolbar) {
+			var id = this.attr('id');
+			var $this = $(this);
+
+			if (!settings.configurable)
+				return false;
+
+			//! @todo insert a select with all column names as options, attach callbacks to show/hide columns
+			var select = $('<select id="'+id+'_columns" style="width: 7em;"></select>').appendTo(toolbar);
+			$('<option value="">Kolumny</option>').appendTo(select);
+
+			var oTable = $('#'+id+' table[id]').dataTable();
+			var aoColumns = oTable.fnSettings().aoColumns;
+			for (var i = 0; i < aoColumns.length; i++) {
+				var c = aoColumns[i];
+				$('<option value="'+i+'">'+(aoColumns[i].bVisible?'ukryj':'pokaż')+' '+c.sTitle+'</option>').appendTo(select); // '+(c.bVisible?' selected="selected"':'')+'
+				/*if (aoColumns[i].bVisible) { }*/
+			}
+			select.on('change', function(e){
+				var index = $(this).val();
+				var visible = oTable.fnSettings().aoColumns[index].bVisible;
+				// update label of selected option
+				var option = $('option:selected', $(this));
+				var pos = option.html().indexOf(' ');
+				option.html((!visible ? 'ukryj' : 'pokaż')+option.html().substr(pos));
+				oTable.fnSetColumnVis( index, !visible, false );
+				$(this).val('');
+				$this.eDataTables('refresh');
+			});
+		},
+
+		initColumnHeaders: function(settings) {
+			var id = this.attr('id');
+			var $this = $(this);
+
+			if ($('#'+id+' table thead tr th a.dropdown-toggle').length == 0) {
+				return;
+			}
+
+			$('#'+id+' table thead tr th a.dropdown-toggle').off('click').on('click',function(e){
+				e.stopPropagation();
+				// next should be an ul.dropdown-menu
+				$(this).next().dropdown('toggle');
+				return true;
+			});
+			if (typeof settings.dropdown != 'undefined') {
+				var dropdowns = $.merge([], settings.dropdown);
+				for(var i = 0; i < dropdowns.length; i++) {
+					if (typeof dropdowns[i].icon == 'undefined') {
+						dropdowns[i].icon = '';
+					}
+					if (typeof settings.dropdown[i].visible == 'undefined') {
+						dropdowns[i].visible = true;
+					}
+				}
+				// attach
+				$('#'+id+' table thead tr th ul.dropdown-menu').each(function(index){
+					// build DOM items
+					var item = '';
+					for(var i = 0; i < dropdowns.length; i++) {
+						var icon = typeof dropdowns[i].icon == 'function' ? dropdowns[i].icon(index) : dropdowns[i].icon;
+						var visible = typeof dropdowns[i].visible == 'function' ? dropdowns[i].visible(index) : dropdowns[i].visible;
+						item += '<li'+(visible?'':' style="display: none;"')+'><a href="#">'+icon+dropdowns[i].label+'</a></li>';
+					}
+					$(this).append(item);
+				});
+				// bind events
+				for(var i = 0; i < dropdowns.length; i++) {
+					$('#'+id+' table thead tr th ul.dropdown-menu li:nth-child('+(i+1)+') a').on('click', dropdowns[i].callback);
+				}
 			}
 		},
 
 		toggleSelection: function(target) {
+			var $this = $(this);
 			var id = this.attr('id');
 			var settings = $.fn.eDataTables.settings[id];
 
@@ -921,6 +1005,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
 	$.fn.eDataTables.buttonToHtml = function(button, bootstrap) {
 		var htmlOptions = (typeof button.htmlOptions !== 'undefined' ? button.htmlOptions : {});
 		htmlOptions['class'] = button.htmlClass + ' ' + (typeof htmlOptions['class'] === 'undefined' ? '' : htmlOptions['class']) + (bootstrap ? ' btn' : '');
+		htmlOptions['href'] = typeof button.url === 'undefined' ? '#' : button.url;
 		if (bootstrap) {
 			htmlOptions.rel = 'tooltip';
 			htmlOptions.title = button.label;
