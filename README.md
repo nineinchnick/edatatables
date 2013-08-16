@@ -15,7 +15,6 @@ It's usable, but feedback is needed. Please post issues on [project's page](http
 
 * Yii 1.1.8 or above.
 * (optional) [Bootstrap extension](http://www.yiiframework.com/extension/bootstrap)
-* (optional) [Select2 extension](http://www.yiiframework.com/extension/select2) for column visibility and order configuration
 
 ##Changes
 
@@ -107,7 +106,7 @@ The action in a controller:
 $widget=$this->createWidget('ext.EDataTables.EDataTables', array(
  'id'            => 'products',
  'dataProvider'  => $dataProvider,
- 'ajaxUrl'       => Yii::app()->getBaseUrl().'/products/index',
+ 'ajaxUrl'       => $this->createUrl('/products/index'),
  'columns'       => $columns,
 ));
 if (!Yii::app()->getRequest()->getIsAjaxRequest()) {
@@ -164,6 +163,6 @@ Check out the [DataTables web page](http://datatables.net) for docs regarding:
 
 ##Resources
 
- * [Project page](http://code.google.com/p/edatatables)
- * [Project wiki](http://code.google.com/p/edatatables/w/list)
+ * GitHub: [https://github.com/nineinchnick/edatatables](https://github.com/nineinchnick/edatatables)
+ * Composer package named [nineinchnick/edatatables](https://packagist.org/packages/nineinchnick/edatatables)
 
