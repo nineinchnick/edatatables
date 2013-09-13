@@ -295,9 +295,9 @@ class EDataTables extends CGridView
 			if (isset($column->type) && in_array($column->type,array('dec2','dec3','dec5','integer','number'))) {
 				// all numeric types gets aligned right by default
 				//if (!isset($column->headerHtmlOptions['class']))
-				//	$column->headerHtmlOptions['class'] = 'ralign';
+				//	$column->headerHtmlOptions['class'] = 'text-right';
 				if (!isset($column->htmlOptions['class']))
-					$column->htmlOptions['class'] = 'ralign';
+					$column->htmlOptions['class'] = 'text-right';
 			}
 			$this->columns[$i]=$column;
 		}
