@@ -558,11 +558,6 @@ $.extend( $.fn.dataTableExt.oPagination, {
 			}
 
 			$this.eDataTables('initButtons', settings, toolbar);
-
-			if (settings.bootstrap) { //reinitialize tooltips and popovers
-				$('#'+id+' a[rel=tooltip]').tooltip();
-				$('#'+id+' a[rel=popover]').popover();
-			}
 		},
 
 		initButtons: function(settings, toolbar) {
@@ -573,9 +568,11 @@ $.extend( $.fn.dataTableExt.oPagination, {
 					// skip if definition is missing (disabling defaults)
 					continue;
 				}
-				var button = $($.fn.eDataTables.buttonToHtml(settings.buttons[i], settings.bootstrap)).appendTo(toolbar);
-				if (!settings.bootstrap) {
+				var button = $($.fn.eDataTables.buttonToHtml(settings.buttons[i])).appendTo(toolbar);
+				if (!settings.buttons[i].init || typeof settings.buttons[i].init != 'function') {
 					button.button({icons: {primary:settings.buttons[i].icon}, text: settings.buttons[i].text});
+				} else {
+					settings.buttons[i].init(button, settings.buttons[i]);
 				}
 				if (typeof settings.buttons[i].callback != 'undefined') {
 					button.click({'id': id, 'that': $this, 'settings': settings}, settings.buttons[i].callback);
@@ -877,11 +874,6 @@ $.extend( $.fn.dataTableExt.oPagination, {
 		if (typeof settings.fnDrawCallbackCustom != 'undefined') {
 			settings.fnDrawCallbackCustom(oSettings,id);
 		}
-
-		if (settings.bootstrap) { //reinitialize tooltips and popovers
-			$('a[rel=tooltip]').tooltip();
-			$('a[rel=popover]').popover();
-		}
 	};
 
 	$.fn.eDataTables.ajaxError = function(XHR, textStatus, errorThrown, settings) {
@@ -1002,24 +994,16 @@ $.extend( $.fn.dataTableExt.oPagination, {
 	};
 
 
-	$.fn.eDataTables.buttonToHtml = function(button, bootstrap) {
+	$.fn.eDataTables.buttonToHtml = function(button) {
 		var htmlOptions = (typeof button.htmlOptions !== 'undefined' ? button.htmlOptions : {});
-		htmlOptions['class'] = button.htmlClass + ' ' + (typeof htmlOptions['class'] === 'undefined' ? '' : htmlOptions['class']) + (bootstrap ? ' btn' : '');
+		htmlOptions['class'] = button.htmlClass + ' ' + (typeof htmlOptions['class'] === 'undefined' ? '' : htmlOptions['class']);
 		htmlOptions['href'] = typeof button.url === 'undefined' ? '#' : button.url;
-		if (bootstrap) {
-			htmlOptions.rel = 'tooltip';
-			htmlOptions.title = button.label;
-		}
 
 		var htmlAttrs = '';
 		for (var i in htmlOptions) {
 			htmlAttrs += ' ' + i + '="' + htmlOptions[i] + '"';
 		}
-		if (bootstrap) {
-			return '<a ' + htmlAttrs + '><i class="' + button.icon + '"></i>' + (button.text ? button.label : '') + '</a>';
-		} else {
-			return '<button ' + htmlAttrs + '>'+button.label+'</button>';
-		}
+		return '<' + button.tagName + ' ' + htmlAttrs + '>' + button.label + '</' + button.tagName + '>';
 	}
 	
 })(jQuery);

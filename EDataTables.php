@@ -27,6 +27,8 @@ Yii::import('ext.EDataTables.*');
  */
 class EDataTables extends CGridView
 {
+	const SESSION_KEY = 'edatatables';
+
 	// reset the template, pagination and other elements are drawn by dataTables JS plugin
 	public $template="{items}";
 	/**
@@ -40,28 +42,23 @@ class EDataTables extends CGridView
 	 */
 	public $serverData = array();
 	/**
-	 * @var string the text to be displayed in a data cell when a data value is null. This property will NOT be HTML-encoded
+	 * @var string The text to be displayed in a data cell when a data value is null. This property will NOT be HTML-encoded
 	 * when rendering. Defaults to an HTML blank.
 	 */
 	public $nullDisplay=null;
 
 	/**
-	 * @var string template used by dataTables, defaults are:
-	 * - for bootstrap theme: <><'row'<'span3'l><'dataTables_toolbar'><'pull-right'f>r>t<'row'<'span3'i><'pull-right'p>>
-	 * - for jQuery UI theme: <><'H'l<'dataTables_toolbar'>fr>t<'F'ip>
+	 * @var string template used by dataTables
 	 */
-	public $datatableTemplate;
-	public $tableBodyCssClass;
-	public $newAjaxUrl;
+	public $datatableTemplate = "<><'H'l<'dataTables_toolbar'>fr>t<'F'ip>";
 	public $selectionChanged;
 	/**
-	 * @var boolean if change in editable columns selects current row;
-	 *				useful in relation tables, where only selected rows are saved;
-	 *				when rows are selected for removal, this should be false;
+	 * @var boolean If change in editable columns selects current row. Useful in relation tables, where only selected rows are saved.
+	 * When rows are selected for removal, this should be false.
 	 */
 	public $editableSelectsRow = true;
 	/**
-	 * @var boolean should the toolbar contain a checkbox for filtering data to only related (and selected)
+	 * @var boolean Should the toolbar contain a checkbox for filtering data to only related (and selected).
 	 */
 	public $relatedOnlyOption = false;
 	
@@ -81,30 +78,33 @@ class EDataTables extends CGridView
 	 */
 	public $unsavedChanges = array('all-selected'=>'','selected'=>'','deselected'=>'','disconnect'=>'','values'=>'');
 	/**
-	 * @var array if null, disables all default buttons, if an array, will be merged with default buttons (refresh, configure)
+	 * @var array If null, disables all default buttons. If an array, will be merged with default refresh button.
 	 */
 	public $buttons = array();
 
 	/**
-	 * @var string the CSS class name for the container of all data item display.
-	 * Defaults to 'table table-striped table-bordered table-condensed items' for bootstrap or 'display items' for jquery UI.
+	 * @var string The CSS class name for the container of all data item display. Defaults to 'items'.
 	 */
-	public $itemsCssClass;
-
-	/**
-	 * @var boolean if true, bootstrap style will be used, jquery UI themeroller otherwise, which is the default
-	 */
-	public $bootstrap = false;
-
-	/**
-	 * @var array if not null, FixedHeader plugin will be initialized using this property as options
-	 */
-	public $fixedHeaders;
+	public $itemsCssClass = 'display items';
 
 	/**
 	 * @var boolean If true, toolbar will contain a multiselect to choose visible columns and column headers will be sortable.
 	 */
 	public $configurable = false;
+
+	/**
+	 * @var array List of CSS files to register, if any contains a slash (/), assets dir will not be prepended to it.
+	 */
+	public $cssFiles = array(
+		'demo_table_jui.css',
+		'jquery.dataTables_themeroller.css',
+		'jquery-ui-1.8.17.custom.css',
+	);
+
+	/**
+	 * @var boolean Should the jquery.ui core script be registered, it could be required for toolbar buttons .
+	 */ 
+	public $registerJUI = true;
 
 	public function init() {
 		// check if a cookie exist holding some options and explode it into GET
@@ -116,22 +116,11 @@ class EDataTables extends CGridView
 			// probably disabled forever, must be called before preparing dataProvider anyway
 			//$this->restoreStateSessionInternal();
 		}
-		// this needs to be set before parent::init, where grid-view would be added and break bootstrap
-		if($this->bootstrap && !isset($this->htmlOptions['class']))
-            $this->htmlOptions['class']='';
 		parent::init();
 		/**
 		 * @todo apparently CGridView wasn't meant to be inherited from
 		 */
 		$this->baseScriptUrl=Yii::app()->getAssetManager()->publish(Yii::getPathOfAlias('ext.EDataTables').'/assets');
-		// append display to the table class, so JUI style on datatable will display properly
-		if ($this->itemsCssClass === null) {
-			if ($this->bootstrap) {
-				$this->itemsCssClass='table table-striped table-bordered table-condensed items';
-			} else {
-				$this->itemsCssClass='display items';
-			}
-		}
 	}
 
 	/**
@@ -167,7 +156,7 @@ class EDataTables extends CGridView
 	}
 
 	public static function restoreStateSession($id, $sort, $pagination, &$columns) {
-		$session = Yii::app()->session['edatatables'];
+		$session = Yii::app()->session[self::SESSION_KEY];
 		if ($sort===null) $sort = new EDTSort;
 		if ($pagination===null) $pagination = new EDTPagination;
 		if (isset($_GET[$sort->sortVar]) && ($iSortingCols = intval($_GET[$sort->sortVar])) > 0) {
@@ -253,7 +242,7 @@ class EDataTables extends CGridView
 			}
 			array_multisort($newOrder, $columns);
 		}
-		Yii::app()->session['edatatables'] = $session;
+		Yii::app()->session[self::SESSION_KEY] = $session;
 	}
 
 	/**
@@ -415,42 +404,12 @@ class EDataTables extends CGridView
 		}
 		return array_merge(array(
 			'refresh' => array(
-				'label' => Yii::t('EDataTables.edt',"Refresh"),
+				'tagName' => 'button',
+				'label' => Yii::t('EDataTables.edt', 'Refresh'),
 				'text' => false,
-				'htmlClass' => 'refreshButton',
-				'icon' => $this->bootstrap ? 'icon-refresh' : 'ui-icon-refresh',
+				'icon' => 'ui-icon-refresh',
 				'callback' => 'js:function(e){e.data.that.eDataTables("refresh"); return false;}',
 			),
-			/*'configure' => array(
-				'label' => Yii::t('EDataTables.edt',"Configure"),
-				'text' => false,
-				'htmlClass' => 'configureButton',
-				'icon' => $this->bootstrap ? 'icon-cog' : 'ui-icon-cog',
-				'callback' => null //default will be used, if possible
-			),*/ // moved to a standalone property as a boolean, initialized in toolbar from JS
-			/*
-			'print' => array(
-				'label' => Yii::t('EDataTables.edt',"Print"),
-				'text' => false,
-				'htmlClass' => 'printButton',
-				'icon' => $this->bootstrap ? 'icon-print' : 'ui-icon-print',
-				'callback' => null //default will be used, if possible
-			),
-			'export' => array(
-				'label' => Yii::t('EDataTables.edt',"Save as CSV"),
-				'text' => false,
-				'htmlClass' => 'exportButton',
-				'icon' => $this->bootstrap ? 'icon-download-alt' : 'ui-icon-disk',
-				'callback' => null //default will be used, if possible
-			),
-			'new' => array(
-				'label' => Yii::t('EDataTables.edt',"Add new"),
-				'text' => true,
-				'htmlClass' => 'newButton',
-				'icon' => $this->bootstrap ? 'icon-plus' : 'ui-icon-document',
-				'callback' => null //default will be used, if possible
-			),
-			*/
 		),$this->buttons);
 	}
 
@@ -470,11 +429,10 @@ class EDataTables extends CGridView
 		}
 		$defaultOptions = array(
 			'baseUrl'			=> CJSON::encode(Yii::app()->baseUrl),
-			'bootstrap'			=> $this->bootstrap,
 			// options inherited from CGridView JS scripts
 			'ajaxUpdate'		=> $this->ajaxUpdate===false ? false : array_unique(preg_split('/\s*,\s*/',$this->ajaxUpdate.','.$id,-1,PREG_SPLIT_NO_EMPTY)),
 			'ajaxOpts'			=> array_merge(array($this->ajaxVar => $this->getId()), $this->serverData),
-			'pagerClass'		=> $this->bootstrap ? 'paging_bootstrap pagination' : $this->pagerCssClass,
+			'pagerClass'		=> $this->pagerCssClass,
 			'loadingClass'		=> $this->loadingCssClass,
 			'filterClass'		=> $this->filterCssClass,
 			//'tableClass'		=> $this->itemsCssClass,
@@ -485,12 +443,10 @@ class EDataTables extends CGridView
 			'iDeferLoading'		=> $this->dataProvider->getTotalItemCount(),
 			'sAjaxSource'		=> CHtml::normalizeUrl($this->ajaxUrl),
 			'aoColumnDefs'		=> $columnDefs,
-			'sDom'				=> $this->bootstrap ? "<><'row'<'span3'l><'dataTables_toolbar'><'pull-right'f>r>t<'row'<'span3'i><'pull-right'p>>" : "<><'H'l<'dataTables_toolbar'>fr>t<'F'ip>",
 			'bScrollCollapse'	=> false,
 			'bStateSave'		=> false,
 			'bPaginate'			=> true,
 			'sCookiePrefix'		=> 'edt_',
-			'bJQueryUI'			=> !$this->bootstrap,
 			'relatedOnlyLabel'	=> Yii::t('EDataTables.edt', 'Only related'),
 			'buttons'			=> $buttons,
 		);
@@ -527,8 +483,6 @@ class EDataTables extends CGridView
 			}
 		}
 		$options=array_merge($defaultOptions, $this->options);
-		if($this->newAjaxUrl!==null)
-			$options['newUrl']=CHtml::normalizeUrl($this->newAjaxUrl);
 		if($this->ajaxUrl!==null)
 			$options['url']=CHtml::normalizeUrl($this->ajaxUrl);
 		if($this->updateSelector!==null)
@@ -540,8 +494,6 @@ class EDataTables extends CGridView
 				$options[$pagination->lengthVar]=$pagination->getPageSize();
 			}
 		}
-		if($this->bootstrap)
-			$options['sPaginationType'] = 'bootstrap';
 		if ($this->datatableTemplate)
 			$options['sDom'] = $this->datatableTemplate;
 		if($this->beforeAjaxUpdate!==null)
@@ -583,49 +535,35 @@ class EDataTables extends CGridView
 			'values' => $values,
 		);
 
+		if (isset($options['fnServerParams']) || isset($options['fnServerData'])) {
+			throw new CException(Yii::t('EDataTables.edt','Options fnServerParams and fnServerData are reserved and cannot be set. Use the serverParams and serverData properties instead.'));
+		}
 		$options['fnServerParams'] = "js:function(aoData){return $('#{$this->getId()}').eDataTables('serverParams', aoData);}";
 		$options['fnServerData'] = "js:function(sSource, aoData, fnCallback){return $('#{$this->getId()}').eDataTables('serverData', sSource, aoData, fnCallback);}";
 		
-		self::initClientScript($this->bootstrap, $this->fixedHeaders !== null, $this->configurable);
+		self::initClientScript($this->cssFiles, $this->configurable, $this->registerJUI);
 		$options=CJavaScript::encode($options);
 		$cs=Yii::app()->getClientScript();
 		$cs->registerScript(__CLASS__.'#'.$id,"jQuery('#$id').eDataTables($options);");
-		if ($this->fixedHeaders !== null) {
-			//$cs->registerScript(__CLASS__.'#'.$id.'_fixedheader',"new FixedHeader( $.fn.eDataTables.tables['$id'], ".CJavaScript::encode($this->fixedHeaders)." );");
-			//$cs->registerScript(__CLASS__.'#'.$id.'_fixedheader',"new FixedColumns( $.fn.eDataTables.tables['$id'], ".CJavaScript::encode($this->fixedHeaders)." );");
-		}
 	}
 	
-	public static function initClientScript($bootstrap=false, $fixedHeaders=false, $configurable=false){
+	public static function initClientScript($cssFiles, $configurable=false, $registerJUI=true){
 		$baseScriptUrl = Yii::app()->getAssetManager()->publish(Yii::getPathOfAlias('ext.EDataTables').'/assets');
 
 		$cs=Yii::app()->getClientScript();
 		$cs->registerCoreScript('jquery');
-		if ($bootstrap) {
-			//$cs->registerCssFile($baseScriptUrl.'/jquery.dataTables.css');
-			$cs->registerCssFile($baseScriptUrl.'/bootstrap.dataTables.css');
-			if ($configurable) {
-				$cs->registerCoreScript('jquery.ui');
-			}
-		} else {
-			$cs->registerCssFile($baseScriptUrl.'/demo_table_jui.css');
-			$cs->registerCssFile($baseScriptUrl.'/jquery.dataTables_themeroller.css');
-			$cs->registerCssFile($baseScriptUrl.'/smoothness/jquery-ui-1.8.17.custom.css');
+		foreach($cssFiles as $cssFile) {
+			$cs->registerCssFile((strpos($cssFile,'/')===false ? $baseScriptUrl.'/css/' : '').$cssFile);
+		}
+		$cs->registerScriptFile($baseScriptUrl.'/js/jquery.dataTables'.(YII_DEBUG ? '' : '.min' ).'.js');
+		if ($configurable || $registerJUI) {
 			$cs->registerCoreScript('jquery.ui');
 		}
-		$cs->registerScriptFile($baseScriptUrl.'/jquery.dataTables'.(YII_DEBUG ? '' : '.min' ).'.js');
 		if ($configurable) {
-			$cs->registerScriptFile($baseScriptUrl.'/ColReorder'.(YII_DEBUG ? '' : '.min' ).'.js');
-			//ESelect2::initClientScript();
-			//Yii::import('ext.TbMultiselect.TbMultiselect');
-			//TbMultiselect::initClientScript();
+			$cs->registerScriptFile($baseScriptUrl.'/js/ColReorder'.(YII_DEBUG ? '' : '.min' ).'.js');
 		}
-		$cs->registerScriptFile($baseScriptUrl.'/jquery.fnSetFilteringDelay.js');
-		$cs->registerScriptFile($baseScriptUrl.'/jdatatable.js', CClientScript::POS_END);
-		if ($fixedHeaders !== null) {
-			//$cs->registerScriptFile($baseScriptUrl.'/FixedHeader'.(YII_DEBUG ? '' : '.min').'.js');
-			//$cs->registerScriptFile($baseScriptUrl.'/FixedColumns'.(YII_DEBUG ? '' : '.min').'.js');
-		}
+		$cs->registerScriptFile($baseScriptUrl.'/js/jquery.fnSetFilteringDelay.js');
+		$cs->registerScriptFile($baseScriptUrl.'/js/jdatatable.js', CClientScript::POS_END);
 	}
 
     /**
@@ -635,7 +573,7 @@ class EDataTables extends CGridView
     {   
         $data=$this->dataProvider->getData();
         $n=count($data);
-        echo "<tbody".($this->tableBodyCssClass !== null ? ' class="'.$this->tableBodyCssClass.'"' : '').">\n";
+        echo "<tbody>\n";
             
 		// unlike in CGridView, here we don't render a special row when table is empty - it breaks the datatables
 		for($row=0;$row<$n;++$row)

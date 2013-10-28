@@ -33,4 +33,5 @@ return array(
 	'Deselect all' => 'Odznacz wszystkie',
 	'Select on page' => 'Zaznacz na stronie',
 	'Deselect on page' => 'Odznacz na stronie',
+	'Options fnServerParams and fnServerData are reserved and cannot be set. Use the serverParams and serverData properties instead.' => 'Opcje fnServerParams i fnServerData są zarezerwowane i nie mogą być ustawione. Zamiast nich, należy skorzystać z właściwości serverParams i serverData.',
 );

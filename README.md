@@ -18,6 +18,18 @@ It's usable, but feedback is needed. Please post issues on [project's page](http
 
 ##Changes
 
+###0.9.7
+
+This is a backward compatibility breaking release. Please read the following summary carefully to see if it affects you:
+
+* major refactoring to remove the 'bootstrap' property and make the extension more style agnostic
+* adjusted the default button definition, see the 'bootstrap' configuration below
+* removed some unused properties like 'tableBodyCssClass', 'newAjaxUrl', 'fixedHeaders'
+* changed arguments of the static EDataTables::initClientScript method
+* introduced new cssFiles and registerJUI properties
+* reorganized assets directory
+* added ELinkColumn
+
 ###0.9.5
 
 * improved bootstrap support
@@ -160,6 +172,41 @@ Check out the [DataTables web page](http://datatables.net) for docs regarding:
 * Styling
 * Multi-column sorting etc.
 * Some examples and funky plugins
+
+###Using with Twitter Bootstrap
+
+Since the _bootstrap_ attribute has been removed, please use the following configuration in the widget factory or as a default skin for your bootstrap theme:
+
+~~~
+[php]
+	'EDataTables'=>array(
+		'htmlOptions' => array(
+			'class' => '',
+		),
+		'itemsCssClass' => 'table table-striped table-bordered table-condensed items',
+		'pagerCssClass' => 'paging_bootstrap pagination',
+		'buttons' => array(
+			'refresh' => array(
+				'tagName' => 'a',
+				'label' => '<i class="icon-refresh"></i>',
+				'htmlClass' => 'btn',
+				'htmlOptions' => array('rel' => 'tooltip', 'title' => Yii::t('EDataTables.edt',"Refresh")),
+				'init' => 'js:function(){}',
+				'callback' => 'js:function(e){e.data.that.eDataTables("refresh"); return false;}',
+			),
+		),
+		'datatableTemplate' => "<><'row'<'span3'l><'dataTables_toolbar'><'pull-right'f>r>t<'row'<'span3'i><'pull-right'p>>",
+		'options' => array(
+			'bJQueryUI' => false,
+			'sPaginationType' => 'bootstrap',
+			//'fnDrawCallbackCustom' => "js:function(){\$('a[rel=tooltip]').tooltip(); \$('a[rel=popover]').popover();}",
+		),
+		'cssFiles' => array(
+			'bootstrap.dataTables.css',
+		),
+		'registerJUI' => false,
+	),
+~~~
 
 ##Resources
 
