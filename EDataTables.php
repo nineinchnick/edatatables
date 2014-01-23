@@ -663,13 +663,11 @@ class EDataTables extends CGridView
 	public function getFormattedData($sEcho) {
 		$result = array();
 
-        $data=$this->dataProvider->getData();
-		$n=count($data);
+		$n=count($this->dataProvider->getData());
 		for($row=0; $row<$n; ++$row) {
-			$dataRow = $data[$row];
 			$currentRow = array();
 			foreach($this->columns as $column) {
-				$currentRow[] = $column->getDataCellContent($row,$dataRow);
+				$currentRow[] = $column->getDataCellContent($row);
 			}
 			$result[$row] = $currentRow;
 		}

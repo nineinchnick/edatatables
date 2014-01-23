@@ -7,9 +7,9 @@
 
 class ECellContentBehavior extends CBehavior
 {
-	public function getDataCellContent($row,$data) {
+	public function getDataCellContent($row) {
 		ob_start();
-		$this->owner->renderDataCellContent($row,$data);
+		$this->owner->renderDataCellContent($row,$this->owner->grid->dataProvider->data[$row]);
 		return ob_get_clean();
 	}
 }
