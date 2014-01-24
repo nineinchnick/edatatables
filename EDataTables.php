@@ -9,19 +9,9 @@
  */
 
 Yii::import('zii.widgets.grid.CGridView');
-Yii::import('ext.EDataTables.*');
 
 /**
  * EDataTables does the same thing as CGridView, but using the datatables.net control.
- * @todo translate original properties (events like beforeAjaxUpdate) to dataTables equivalents
- * @todo check for other features of CGridView (HTML classes, filters in headers, translations, pagers, summary etc.)
- * @todo bbq support in DataTables
- *
- * docs todo:
- * @todo document alignment of numeric columns
- * @todo document usage of toolbar and its buttons (refresh, export, plot, new)
- * @todo document usage of filters
- * @todo document usage of checked rows with examples of server-side processing
  *
  * @author Jan Was <jwas@nets.com.pl>
  */
@@ -120,7 +110,7 @@ class EDataTables extends CGridView
 		/**
 		 * @todo apparently CGridView wasn't meant to be inherited from
 		 */
-		$this->baseScriptUrl=Yii::app()->getAssetManager()->publish(Yii::getPathOfAlias('ext.EDataTables').'/assets');
+		$this->baseScriptUrl=Yii::app()->getAssetManager()->publish(dirname(__FILE__).DIRECTORY_SEPARATOR.'assets');
 	}
 
 	/**
@@ -269,15 +259,9 @@ class EDataTables extends CGridView
 			else
 			{
 				if(!isset($column['class'])) {
-					$column['class']='ext.EDataTables.EDataColumn';
-					$column=Yii::createComponent($column, $this);
-				} else {
-					//$exceptionParams = array('{class}' => $column['class'], '{column}' => $column['name']);
-					$column=Yii::createComponent($column, $this);
-					if (!method_exists($column,'getDataCellContent')) {
-						$column->attachBehavior('cellContentBehavior','ext.EDataTables.ECellContentBehavior');
-					}
+					$column['class']='EDataColumn';
 				}
+				$column=Yii::createComponent($column, $this);
 			}
 			if($column->id===null)
 				$column->id=$this->getId().'_c'.$i;
@@ -548,7 +532,7 @@ class EDataTables extends CGridView
 	}
 	
 	public static function initClientScript($cssFiles, $configurable=false, $registerJUI=true){
-		$baseScriptUrl = Yii::app()->getAssetManager()->publish(Yii::getPathOfAlias('ext.EDataTables').'/assets');
+		$baseScriptUrl = Yii::app()->getAssetManager()->publish(dirname(__FILE__).DIRECTORY_SEPARATOR.'assets');
 
 		$cs=Yii::app()->getClientScript();
 		$cs->registerCoreScript('jquery');
