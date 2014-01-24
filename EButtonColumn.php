@@ -35,11 +35,6 @@ class EButtonColumn extends CButtonColumn {
 	 */
 	public $historyButtonOptions=array('class'=>'history');
 
-	public $viewButtonIcon = 'eye-open';
-	public $updateButtonIcon = 'pencil';
-	public $deleteButtonIcon = 'trash';
-	public $historyButtonIcon = 'calendar';
-
 	/**
 	 * @var boolean If true, column header will contain a dropdown menu.
 	 * Its contents should be rendered using JavaScript.
@@ -68,10 +63,6 @@ class EButtonColumn extends CButtonColumn {
 	 */
 	protected function initDefaultButtons()
 	{
-		if (!$this->grid->bootstrap) {
-			$this->viewButtonIcon = 'search';
-		}
-
 		if($this->deleteConfirmation===null)
 			$this->deleteConfirmation=Yii::t('zii','Are you sure you want to delete this item?');
 
@@ -121,68 +112,7 @@ JavaScript;
 			'imageUrl'=>$this->historyButtonImageUrl,
 			'options'=>$this->historyButtonOptions,
 		);
-		if(isset($this->buttons['history']))
-			$this->buttons['history']=array_merge($button,$this->buttons['history']);
-		else
-			$this->buttons['history']=$button;
-
-        if ($this->viewButtonIcon !== false && !isset($this->buttons['view']['icon']))
-            $this->buttons['view']['icon'] = $this->viewButtonIcon;
-        if ($this->updateButtonIcon !== false && !isset($this->buttons['update']['icon']))
-            $this->buttons['update']['icon'] = $this->updateButtonIcon;
-        if ($this->deleteButtonIcon !== false && !isset($this->buttons['delete']['icon']))
-            $this->buttons['delete']['icon'] = $this->deleteButtonIcon;
-        if ($this->historyButtonIcon !== false && !isset($this->buttons['history']['icon']))
-            $this->buttons['history']['icon'] = $this->historyButtonIcon;
-	}
-
-	/**
-	 * Renders a link button.
-	 * @param string $id the ID of the button
-	 * @param array $button the button configuration which may contain 'label', 'url', 'imageUrl' and 'options' elements.
-	 * @param integer $row the row number (zero-based)
-	 * @param mixed $data the data object associated with the row
-	 */
-	protected function renderButton($id, $button, $row, $data)
-	{
-		if (isset($button['visible']) && !$this->evaluateExpression($button['visible'], array('row'=>$row, 'data'=>$data)))
-			return;
-
-		$label = isset($button['label']) ? $button['label'] : $id;
-		$url = isset($button['url']) ? $this->evaluateExpression($button['url'], array('data'=>$data, 'row'=>$row)) : '#';
-		$options = isset($button['options']) ? $button['options'] : array();
-
-		if (!isset($options['title']))
-			$options['title'] = $label;
-
-		if ($this->grid->bootstrap) {
-			if (!isset($options['rel']))
-				$options['rel'] = 'tooltip';
-		}
-
-		if (isset($button['icon']))
-		{
-			if ($this->grid->bootstrap) {
-				if (strpos($button['icon'], 'icon') === false)
-					$button['icon'] = 'icon-'.implode(' icon-', explode(' ', $button['icon']));
-
-				echo CHtml::link('<i class="'.$button['icon'].'"></i>', $url, $options);
-			} else {
-				if (strpos($button['icon'], 'icon') === false)
-					$button['icon'] = 'ui-icon-'.implode(' ui-icon-', explode(' ', $button['icon']));
-				if (!isset($options['class']))
-					$options['class']='';
-				$options['class'] .=' view left ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary ui-button-icon-primary ui-icon '.$button['icon']; 
-				if (isset($button['imageUrl']) && is_string($button['imageUrl']))
-					echo CHtml::link(CHtml::image($button['imageUrl'], $label), $url, $options);
-				else
-					echo CHtml::link($label, $url, $options);
-			}
-		} else if (isset($button['imageUrl']) && is_string($button['imageUrl'])) {
-			echo CHtml::link(CHtml::image($button['imageUrl'], $label), $url, $options);
-		} else {
-			echo CHtml::link($label, $url, $options);
-		}
+		$this->buttons['history']=!isset($this->buttons['history']) ? $button : array_merge($button,$this->buttons['history']);
 	}
 	
 	public function getDataCellContent($row) {

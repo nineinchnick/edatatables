@@ -690,10 +690,6 @@ class EDataTables extends CGridView
 		if (is_array($query)) {
 			return $query;
 		}
-
-		if (is_array($query)) {
-			return $query;
-		}
 		$parsedQuery = array();
 
 		if (is_string($query) && !empty($query)) {
