@@ -720,7 +720,7 @@
 		// iterate on all checkboxes, get the row id and check in lists of selected and disconnect if the state should be changed
 		var $this = $(this).parent().parent();
 		if (typeof $this.attr('id') == 'undefined') {
-			$this = $this.parent().parent();
+			$this = $this.parent();
 		}
 		var id = $this.attr('id');
 		var settings = $.fn.eDataTables.settings[id];
