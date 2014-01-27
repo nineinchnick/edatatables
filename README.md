@@ -196,15 +196,18 @@ Since the _bootstrap_ attribute has been removed, please use the following confi
 			),
 		),
 		'datatableTemplate' => "<><'row'<'span3'l><'dataTables_toolbar'><'pull-right'f>r>t<'row'<'span3'i><'pull-right'p>>",
+        'registerJUI' => false,
 		'options' => array(
 			'bJQueryUI' => false,
 			'sPaginationType' => 'bootstrap',
 			//'fnDrawCallbackCustom' => "js:function(){\$('a[rel=tooltip]').tooltip(); \$('a[rel=popover]').popover();}",
 		),
-		'cssFiles' => array(
-			'bootstrap.dataTables.css',
-		),
-		'registerJUI' => false,
+		'cssFiles' => array('bootstrap.dataTables.css'),
+        'jsFiles' => array(
+           'bootstrap.dataTables.js',
+           'jquery.fnSetFilteringDelay.js',
+           'jdatatable.js' => CClientScript::POS_END,
+        ),
 	),
 ~~~
 

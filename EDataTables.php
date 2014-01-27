@@ -91,6 +91,15 @@ class EDataTables extends CGridView
 		'jquery-ui-1.8.17.custom.css',
 	);
 
+    /**
+     * @var array List of JS files to register, if any contains a slash (/), assets dir will not be prepended to it.
+     * When filename is the key, value must be one of CClientScript::POS_* constants.
+     */
+    public $jsFiles = array(
+        'jquery.fnSetFilteringDelay.js',
+        'jdatatable.js' => CClientScript::POS_END,
+    );
+
 	/**
 	 * @var boolean Should the jquery.ui core script be registered, it could be required for toolbar buttons .
 	 */ 
@@ -525,13 +534,12 @@ class EDataTables extends CGridView
 		$options['fnServerParams'] = "js:function(aoData){return $('#{$this->getId()}').eDataTables('serverParams', aoData);}";
 		$options['fnServerData'] = "js:function(sSource, aoData, fnCallback){return $('#{$this->getId()}').eDataTables('serverData', sSource, aoData, fnCallback);}";
 		
-		self::initClientScript($this->cssFiles, $this->configurable, $this->registerJUI);
+		self::initClientScript($this->cssFiles, $this->jsFiles, $this->configurable, $this->registerJUI);
 		$options=CJavaScript::encode($options);
-		$cs=Yii::app()->getClientScript();
-		$cs->registerScript(__CLASS__.'#'.$id,"jQuery('#$id').eDataTables($options);");
+		Yii::app()->getClientScript()->registerScript(__CLASS__.'#'.$id, "jQuery('#$id').eDataTables($options);");
 	}
 	
-	public static function initClientScript($cssFiles, $configurable=false, $registerJUI=true){
+	public static function initClientScript($cssFiles, $jsFiles, $configurable=false, $registerJUI=true){
 		$baseScriptUrl = Yii::app()->getAssetManager()->publish(dirname(__FILE__).DIRECTORY_SEPARATOR.'assets');
 
 		$cs=Yii::app()->getClientScript();
@@ -545,6 +553,16 @@ class EDataTables extends CGridView
 		}
 		if ($configurable) {
 			$cs->registerScriptFile($baseScriptUrl.'/js/ColReorder'.(YII_DEBUG ? '' : '.min' ).'.js');
+		}
+		foreach($jsFiles as $key=>$value) {
+            if (is_numeric($key)) {
+                $jsFiles = $value;
+                $position = $cs->defaultScriptFilePosition;
+            } else {
+                $jsFiles = $key;
+                $position = $value;
+            }
+			$cs->registerScriptFile((strpos($jsFile,'/')===false ? $baseScriptUrl.'/js/' : '').$jsFile, $position);
 		}
 		$cs->registerScriptFile($baseScriptUrl.'/js/jquery.fnSetFilteringDelay.js');
 		$cs->registerScriptFile($baseScriptUrl.'/js/jdatatable.js', CClientScript::POS_END);
