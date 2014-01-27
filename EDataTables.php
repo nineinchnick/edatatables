@@ -446,7 +446,7 @@ class EDataTables extends CGridView
 		if (Yii::app()->getLanguage() !== 'en_us') {
 			// those are the defaults in the DataTables plugin JS source,
 			// we don't need to set them if app language is already en_us
-			$defaultOptions['oLanguage'] = array(
+            $oLanguage = array(
 				"oAria" => array(
 					"sSortAscending" => Yii::t('EDataTables.edt',": activate to sort column ascending"),
 					"sSortDescending" => Yii::t('EDataTables.edt',": activate to sort column descending"),
@@ -472,8 +472,9 @@ class EDataTables extends CGridView
 			);
 			$localeSettings = localeconv();
 			if (!empty($localeSettings['decimal_point'])) {
-				$defaultOptions['oLanguage']["sInfoThousands"] = $localeSettings['decimal_point'];
+				$oLanguage["sInfoThousands"] = $localeSettings['decimal_point'];
 			}
+			$this->options['oLanguage'] = array_merge($oLanguage, !isset($this->options['oLanguage']) ? array() : $this->options['oLanguage']);
 		}
 		$options=array_merge($defaultOptions, $this->options);
 		if($this->ajaxUrl!==null)

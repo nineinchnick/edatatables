@@ -1,4 +1,4 @@
-jQuery.fn.dataTableExt.oApi.fnSetFilteringDelay = function ( oSettings, iDelay ) {
+jQuery.fn.dataTableExt.oApi.fnSetFilteringDelay = function ( oSettings, iDelay, cFeature ) {
     /*
      * Inputs:      object:oSettings - dataTables settings object - automatically given
      *              integer:iDelay - delay in milliseconds
@@ -9,17 +9,18 @@ jQuery.fn.dataTableExt.oApi.fnSetFilteringDelay = function ( oSettings, iDelay )
      */
     var
         _that = this,
-        iDelay = (typeof iDelay == 'undefined') ? 250 : iDelay;
+        iDelay = (typeof iDelay == 'undefined') ? 250 : iDelay,
+        cFeature = (typeof cFeature == 'undefined') ? 'f' : cFeature;
      
     this.each( function ( i ) {
-		if (!_that.fnSettings().oFeatures.bFilter || typeof _that.fnSettings().aanFeatures.f == 'undefined')
+		if (!_that.fnSettings().oFeatures.bFilter || typeof _that.fnSettings().aanFeatures[cFeature] == 'undefined')
 			return;
         $.fn.dataTableExt.iApiIndex = i;
         var
             $this = this,
             oTimerId = null,
             sPreviousSearch = null,
-            anControl = $( 'input', _that.fnSettings().aanFeatures.f );
+            anControl = $( 'input', _that.fnSettings().aanFeatures[cFeature] );
          
         anControl.unbind( 'keyup' ).bind( 'keyup', function() {
             var $$this = $this;
