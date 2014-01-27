@@ -556,10 +556,10 @@ class EDataTables extends CGridView
 		}
 		foreach($jsFiles as $key=>$value) {
             if (is_numeric($key)) {
-                $jsFiles = $value;
+                $jsFile = $value;
                 $position = $cs->defaultScriptFilePosition;
             } else {
-                $jsFiles = $key;
+                $jsFile = $key;
                 $position = $value;
             }
 			$cs->registerScriptFile((strpos($jsFile,'/')===false ? $baseScriptUrl.'/js/' : '').$jsFile, $position);
