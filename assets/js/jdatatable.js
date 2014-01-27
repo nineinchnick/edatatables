@@ -718,10 +718,7 @@
 	 */
 	$.fn.eDataTables.drawCallback = function(oSettings) {
 		// iterate on all checkboxes, get the row id and check in lists of selected and disconnect if the state should be changed
-		var $this = $(this).parent().parent();
-		if (typeof $this.attr('id') == 'undefined') {
-			$this = $this.parent();
-		}
+		var $this = $(this).parents('.dataTables_wrapper:first').parent();
 		var id = $this.attr('id');
 		var settings = $.fn.eDataTables.settings[id];
 		var all_selected = $('#'+id+'-all-selected').data('select');
