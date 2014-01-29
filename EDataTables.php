@@ -399,6 +399,7 @@ class EDataTables extends CGridView
 			'refresh' => array(
 				'tagName' => 'button',
 				'label' => Yii::t('EDataTables.edt', 'Refresh'),
+                'htmlClass' => '',
 				'text' => false,
 				'icon' => 'ui-icon-refresh',
 				'callback' => 'js:function(e){e.data.that.eDataTables("refresh"); return false;}',
@@ -529,11 +530,12 @@ class EDataTables extends CGridView
 			'values' => $values,
 		);
 
-		if (isset($options['fnServerParams']) || isset($options['fnServerData'])) {
-			throw new CException(Yii::t('EDataTables.edt','Options fnServerParams and fnServerData are reserved and cannot be set. Use the serverParams and serverData properties instead.'));
+		if (isset($options['fnServerParams'])) {
+			throw new CException(Yii::t('EDataTables.edt','fnServerParams option is reserved and cannot be set. Use the serverParams property instead.'));
 		}
 		$options['fnServerParams'] = "js:function(aoData){return $('#{$this->getId()}').eDataTables('serverParams', aoData);}";
-		$options['fnServerData'] = "js:function(sSource, aoData, fnCallback){return $('#{$this->getId()}').eDataTables('serverData', sSource, aoData, fnCallback);}";
+        if (!isset($options['fnServerData']))
+            $options['fnServerData'] = "js:function(sSource, aoData, fnCallback){return $('#{$this->getId()}').eDataTables('serverData', sSource, aoData, fnCallback);}";
 		
 		self::initClientScript($this->cssFiles, $this->jsFiles, $this->configurable, $this->registerJUI);
 		$options=CJavaScript::encode($options);
