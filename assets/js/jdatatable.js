@@ -119,10 +119,6 @@
 			// toolbar
 			$this.eDataTables('initToolbar', settings);
 
-			// -----------------------
-			// init dropdowns in column headers
-			$this.eDataTables('initColumnHeaders', settings);
-
 			//deselect all rows on filtering
 			$('div.dataTables_filter input[type=text]').on('keyup', function(e) {
 				$('#' + id + '-all-selected').val('').data('select', '');
@@ -506,48 +502,6 @@
 				$(this).val('');
 				$this.eDataTables('refresh');
 			});
-		},
-
-		initColumnHeaders: function(settings) {
-			var id = this.attr('id');
-			var $this = $(this);
-
-			if ($('#'+id+' table thead tr th a.dropdown-toggle').length == 0) {
-				return;
-			}
-
-			$('#'+id+' table thead tr th a.dropdown-toggle').off('click').on('click',function(e){
-				e.stopPropagation();
-				// next should be an ul.dropdown-menu
-				$(this).next().dropdown('toggle');
-				return true;
-			});
-			if (typeof settings.dropdown != 'undefined') {
-				var dropdowns = $.merge([], settings.dropdown);
-				for(var i = 0; i < dropdowns.length; i++) {
-					if (typeof dropdowns[i].icon == 'undefined') {
-						dropdowns[i].icon = '';
-					}
-					if (typeof settings.dropdown[i].visible == 'undefined') {
-						dropdowns[i].visible = true;
-					}
-				}
-				// attach
-				$('#'+id+' table thead tr th ul.dropdown-menu').each(function(index){
-					// build DOM items
-					var item = '';
-					for(var i = 0; i < dropdowns.length; i++) {
-						var icon = typeof dropdowns[i].icon == 'function' ? dropdowns[i].icon(index) : dropdowns[i].icon;
-						var visible = typeof dropdowns[i].visible == 'function' ? dropdowns[i].visible(index) : dropdowns[i].visible;
-						item += '<li'+(visible?'':' style="display: none;"')+'><a href="#">'+icon+dropdowns[i].label+'</a></li>';
-					}
-					$(this).append(item);
-				});
-				// bind events
-				for(var i = 0; i < dropdowns.length; i++) {
-					$('#'+id+' table thead tr th ul.dropdown-menu li:nth-child('+(i+1)+') a').on('click', dropdowns[i].callback);
-				}
-			}
 		},
 
 		toggleSelection: function(target) {
