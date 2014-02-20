@@ -601,8 +601,10 @@ class EDataTables extends CGridView
 			}
 			if ($hasKeyAttribute) {
 				if ($keyAttribute=='keyField') {
-					if (isset($data[$keyAttribute]))
+                    if (is_array($data) && isset($data[$keyAttribute]))
 						$key = $data[$keyAttribute];
+                    else if(is_object($data) && isset($data->{$keyAttribute}))
+                        $key = $data->{$keyAttribute};
 					else
 						continue;
 				} else if ($keyAttribute !== null && !empty($this->dataProvider->$keyAttribute)) {
