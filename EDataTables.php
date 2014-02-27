@@ -663,7 +663,7 @@ class EDataTables extends CGridView
 	 * 
 	 * @access public
 	 * @param int $sEcho
-	 * @return void
+	 * @return array
 	 */
 	public function getFormattedData($sEcho) {
 		$result = array();
