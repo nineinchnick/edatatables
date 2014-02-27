@@ -567,8 +567,6 @@ class EDataTables extends CGridView
             }
 			$cs->registerScriptFile((strpos($jsFile,'/')===false ? $baseScriptUrl.'/js/' : '').$jsFile, $position);
 		}
-		$cs->registerScriptFile($baseScriptUrl.'/js/jquery.fnSetFilteringDelay.js');
-		$cs->registerScriptFile($baseScriptUrl.'/js/jdatatable.js', CClientScript::POS_END);
 	}
 
     /**
