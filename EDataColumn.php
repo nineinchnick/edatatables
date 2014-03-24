@@ -47,10 +47,11 @@ class EDataColumn extends CDataColumn {
 	}
 
 	public function getDataCellContent($row) {
-        if (method_exists(get_parent_class($this), 'getDataCellContent'))
-            return parent::getDataCellContent($row);
 		ob_start();
-		$this->renderDataCellContent($row,$this->grid->dataProvider->data[$row]);
+		if (method_exists(get_parent_class($this), 'getDataCellContent'))
+			parent::getDataCellContent($row);
+		else
+			$this->renderDataCellContent($row,$this->grid->dataProvider->data[$row]);
 		return ob_get_clean();
 	}
 }
