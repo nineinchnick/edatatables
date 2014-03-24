@@ -5,7 +5,7 @@
  * @license http://www.yiiframework.com/license/
  */
 
-Yii::import('zii.widgets.grid.CGridColumn');
+Yii::import('zii.widgets.grid.CDataColumn');
 
 /**
  *
