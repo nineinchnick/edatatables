@@ -122,9 +122,7 @@ class EEditableColumn extends EDataColumn {
 			case 'dec2':
 			case 'dec3':
 			case 'dec5':
-				if ($this->grid->bootstrap) {
-					$options['class'].= ' span1';
-				}
+				$options['class'].= ' span1';
 				echo CHtml::tag('input', array_merge(array('type'=>'text','id'=>$id,'value'=>$value,'size'=>6,'maxlength'=>9), $options));
 				break;
 			case 'flags':
@@ -174,9 +172,7 @@ class EEditableColumn extends EDataColumn {
 			case 'time':
 			case 'datetime':
 				$options['class'].=' '.$this->grid->id.'_datepickers';
-				if ($this->grid->bootstrap) {
-					$options['class'].= ' span2';
-				}
+				$options['class'].= ' span2';
 				echo $this->grid->owner->widget('ext.TbDatepicker.TbDatepicker', array(
 					'htmlOptions' => array_merge(array(
 						'id'=>$id,
