@@ -104,7 +104,8 @@ Import in config/main.php
 ```php
 'import' => array(
 	...
-	'ext.EDataTables.*', //fix your alias properly if you've used composer :)
+	'ext.edatatables.*', //if it's in your extensions folder
+	'vendor.nineinchnick.edatatables.*', //if you're using composer (and have a 'vendor' alias!)
 	...
 )
 ```
@@ -115,7 +116,7 @@ Use similar to CGridView. If displayed in a normal call just run the widget. To 
 
 The action in a controller:
 ```php
-$widget = $this->createWidget('ext.EDataTables.EDataTables', array(
+$widget = $this->createWidget('ext.edatatables.EDataTables', array(
  'id'            => 'products',
  'dataProvider'  => $dataProvider,
  'ajaxUrl'       => $this->createUrl('/products/index'),
