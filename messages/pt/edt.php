@@ -27,7 +27,7 @@ return array(
 	"Refresh" => "Atualizar",
 	"Configure" => "Configurar",
 	"Print" => "Imprimir",
-	"Save as CSV" => "Zapisz jako CSV",
+	"Save as CSV" => "Salvar como CSV",
 	"Add new" => "Adicionar novo",
 	'Select all' => 'Selecionar todos',
 	'Deselect all' => 'Desmarcar todos',
