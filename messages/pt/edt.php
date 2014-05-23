@@ -19,7 +19,7 @@ return array(
 	"No matching records found" => "Nenhum registro foi encontrado",
 	"Processing..." => "Processando...",
 	"Search:" => "Busca:",
-	"Show _MENU_ entries" => Exibir _MENU_ registros",
+	"Show _MENU_ entries" => "Exibir _MENU_ registros",
 	"Showing 0 to 0 of 0 entries" => "Exibindo 0 registro",
 	"Showing _START_ to _END_ of _TOTAL_ entries" => "Exibindo <strong>_START_</strong> at&acute; <strong>_END_</strong> de <strong>_TOTAL_</strong> registros",
 	"Only related" => "Somente relacionados",
