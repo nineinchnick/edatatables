@@ -12,5 +12,6 @@
     ],
     "require": {
 		"php": ">=5.3.0"
+        ,"mozarcik/yii-datepicker": "1.4.1"
     }
 }
