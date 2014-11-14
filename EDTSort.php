@@ -115,6 +115,7 @@ class EDTSort extends CSort
         $params = $this->params === null ? $_GET : $this->params;
 
         $columns = is_array($this->columns) ? array_values($this->columns) : $this->columns;
+        if (empty($columns)) return $controller->createUrl($this->route);
         $i = 0;
         foreach ($params as $key => $val) {
             if (strpos($key, $this->sortVarIdxPrefix) === false && strpos($key, $this->sortVarDirPrefix) === false)
