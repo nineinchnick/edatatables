@@ -442,6 +442,7 @@ class EDataTables extends CGridView
 			'bPaginate'			=> true,
 			'sCookiePrefix'		=> 'edt_',
 			'relatedOnlyLabel'	=> Yii::t('EDataTables.edt', 'Only related'),
+			'columnsListLabel'	=> Yii::t('EDataTables.edt', 'Columns'),
 			'buttons'			=> $buttons,
 		);
 		if (Yii::app()->getLanguage() !== 'en_us') {

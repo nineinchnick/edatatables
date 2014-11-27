@@ -54,7 +54,7 @@
 					var base_values = input_values.data('base');
 					var row_id = $.fn.eDataTables.getKey(id, $(e.target).parents('tr:first').index());
 					var index = $(e.target).attr('id').substr(0,$(e.target).attr('id').indexOf('_row'));
-					
+
 					if (typeof list_values == 'undefined') list_values = {};
 					if (typeof list_values[row_id] == 'undefined') list_values[row_id] = {};
 					var value;
@@ -72,7 +72,7 @@
 					} else {
 						list_values[row_id][index] = value;
 					}
-					
+
 					input_values.val($.param(list_values)).data('list',list_values);
 					if(typeof settings.editableEvents == 'function') {
 						settings.editableEvents(e);
@@ -126,7 +126,7 @@
 				$('#' + id + '-deselected').val('').data('list', {});
 				$('#' + id + '-disconnect').val('').data('list', {});
 				$('#' + id + '-values').val('').data('list', {});
-				
+
 				$('input.select-on-check-all').removeAttr('checked');
 				$('input.select-on-check-all').prop('indeterminate', false);
 			});
@@ -285,7 +285,7 @@
 				this.eDataTables('refresh');
 				return;
 			}
-			
+
 			if (settings.filterForm === null) {
 				// if we can't track it, assume it changes every time
 				changed = true;
@@ -317,7 +317,7 @@
 				$('input.select-on-check-all').removeAttr('checked');
 				$('input.select-on-check-all').prop('indeterminate', false);
 
-			}			
+			}
 			this.eDataTables('refresh');
  		},
 
@@ -443,7 +443,7 @@
 				return false;
 
 			$this.eDataTables('initConfigControl', settings, toolbar);
-			
+
 			if (settings.relatedOnlyOption) {
 				var checked = settings.relatedOnlyOption == '2' ? ' checked="checked"' : '';
 				$('<input type="checkbox" id="'+id+'_relatedOnly" value="1"'+checked+'/><label for="'+id+'_relatedOnly">'+settings.relatedOnlyLabel+'</label>').appendTo(toolbar);
@@ -482,7 +482,7 @@
 
 			//! @todo insert a select with all column names as options, attach callbacks to show/hide columns
 			var select = $('<select id="'+id+'_columns" style="width: 7em;"></select>').appendTo(toolbar);
-			$('<option value="">Kolumny</option>').appendTo(select);
+			$('<option value="">'+settings.columnsListLabel+'</option>').appendTo(select);
 
 			var oTable = $('#'+id+' table[id]').dataTable();
 			var aoColumns = oTable.fnSettings().aoColumns;
@@ -533,7 +533,7 @@
 			} else if ($(target).hasClass('dropdown-select-page') || $(target).hasClass('dropdown-deselect-page')) {
 /*select/deselect page*/
 				var check_page = $(target).hasClass('dropdown-select-page');
-				
+
 				var checkbox2 = $(target).closest('div.dropdown').find(':checkbox');
 				var name2 = checkbox2.attr('name').replace('_all', '[]');
 				checkbox2.attr('checked', check_page);
@@ -543,7 +543,7 @@
 					$(this).parent().parent().toggleClass('selected',check_page);
 					$.fn.eDataTables.select(id, this);
 				});
-			} else if ($(target).hasClass('select-on-check')){ 
+			} else if ($(target).hasClass('select-on-check')){
 /*select one row by checkbox*/
 				var $row = $(target).parent().parent();
 				if(settings.selectableRows == 1){
@@ -610,7 +610,7 @@
 			for (var d in list_selected) selected_size++;
 			for (var e in list_deselected) deselected_size++;
 			for (var f in list_disconnect) disconnect_size++;
-			
+
 			return (selected_size != 0 && selected_size != total_records)
 					|| (all_selected && (deselected_size + disconnect_size != total_records) && (deselected_size + disconnect_size != 0));
 		},
@@ -681,7 +681,7 @@
 		var list_disconnect = $('#'+id+'-disconnect').data('list');
 		var list_values = $('#'+id+'-values').data('list');
 		var base_values = $('#'+id+'-values').data('base');
-		
+
 		$('#'+id+' .'+settings.tableClass+' > tbody > tr > td >input.select-on-check').each(function(){
 			$(this).data('initValue', this.checked);
 			var row = $(this).parent().parent().index();
@@ -715,7 +715,7 @@
 				$(this).val(list_values[key][attr]);
 			}
 		});
-		$('#'+id+'-values').data('base', base_values); 
+		$('#'+id+'-values').data('base', base_values);
 		// call selectChecked
 		$.fn.eDataTables.selectCheckedRows(id);
 		if (typeof settings.fnDrawCallbackCustom != 'undefined') {
@@ -833,7 +833,7 @@
 		input_disconnect.val(list_disconnect_serialized).data('list',list_disconnect);
 
 
-		
+
 
 		$('#' + id + ' .select-on-check-all').prop('indeterminate', $('#' + id).eDataTables('isSomeSelected'));
 		$('#' + id + ' .select-on-check-all').attr('checked', $('#' + id).eDataTables('isAllSelected'));
@@ -852,5 +852,5 @@
 		}
 		return '<' + button.tagName + ' ' + htmlAttrs + '>' + button.label + '</' + button.tagName + '>';
 	}
-	
+
 })(jQuery);
