@@ -173,7 +173,7 @@ class EEditableColumn extends EDataColumn {
 			case 'datetime':
 				$options['class'].=' '.$this->grid->id.'_datepickers';
 				$options['class'].= ' span2';
-				echo $this->grid->owner->widget('ext.TbDatepicker.TbDatepicker', array(
+				echo $this->grid->owner->widget('Datepicker', array(
 					'htmlOptions' => array_merge(array(
 						'id'=>$id,
 						'name'=>$this->name,
