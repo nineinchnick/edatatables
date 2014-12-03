@@ -104,7 +104,12 @@ class EDataTables extends CGridView
 	 * @var boolean Should the jquery.ui core script be registered, it could be required for toolbar buttons .
 	 */ 
 	public $registerJUI = true;
-
+	
+	/**
+	 * @var boolean Should the included jquery.DataTables.js script be loaded. You would turn it off if replacing it with your own (ie: from CDN or updated version)
+	 */
+	public $jqueryDataTables = true;
+	
 	public function init() {
 		// check if a cookie exist holding some options and explode it into GET
 		// must be done before parent::init(), because it calls initColumns and it calls dataProvider->getData()
