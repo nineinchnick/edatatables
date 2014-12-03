@@ -538,12 +538,12 @@ class EDataTables extends CGridView
         if (!isset($options['fnServerData']))
             $options['fnServerData'] = "js:function(sSource, aoData, fnCallback){return $('#{$this->getId()}').eDataTables('serverData', sSource, aoData, fnCallback);}";
 		
-		self::initClientScript($this->cssFiles, $this->jsFiles, $this->configurable, $this->registerJUI);
+		self::initClientScript($this->cssFiles, $this->jsFiles, $this->configurable, $this->registerJUI, $this->jqueryDataTables);
 		$options=CJavaScript::encode($options);
 		Yii::app()->getClientScript()->registerScript(__CLASS__.'#'.$id, "jQuery('#$id').eDataTables($options);");
 	}
 	
-	public static function initClientScript($cssFiles, $jsFiles, $configurable=false, $registerJUI=true){
+	public static function initClientScript($cssFiles, $jsFiles, $configurable=false, $registerJUI=true, $jqueryDataTables=true){
 		$baseScriptUrl = Yii::app()->getAssetManager()->publish(dirname(__FILE__).DIRECTORY_SEPARATOR.'assets');
 
 		$cs=Yii::app()->getClientScript();
@@ -551,7 +551,9 @@ class EDataTables extends CGridView
 		foreach($cssFiles as $cssFile) {
 			$cs->registerCssFile((strpos($cssFile,'/')===false ? $baseScriptUrl.'/css/' : '').$cssFile);
 		}
-		$cs->registerScriptFile($baseScriptUrl.'/js/jquery.dataTables'.(YII_DEBUG ? '' : '.min' ).'.js');
+		if ( $jqueryDataTables === true ) {
+			$cs->registerScriptFile($baseScriptUrl.'/js/jquery.dataTables'.(YII_DEBUG ? '' : '.min' ).'.js');
+		}
 		if ($configurable || $registerJUI) {
 			$cs->registerCoreScript('jquery.ui');
 		}
