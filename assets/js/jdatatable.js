@@ -62,7 +62,7 @@
 						default:
 						case 'select':
 						case 'text': value = $(e.target).val(); break;
-						case 'checkbox': value = $(e.target).attr('checked') ? 1 : 0; break;
+						case 'checkbox': value = $(e.target).prop('checked') ? 1 : 0; break;
 					}
 					if (typeof base_values[row_id] != 'undefined'
 							&& typeof base_values[row_id][index] != 'undefined'
@@ -127,7 +127,7 @@
 				$('#' + id + '-disconnect').val('').data('list', {});
 				$('#' + id + '-values').val('').data('list', {});
 
-				$('input.select-on-check-all').removeAttr('checked');
+				$('input.select-on-check-all').prop('checked', false);
 				$('input.select-on-check-all').prop('indeterminate', false);
 			});
 
@@ -175,7 +175,7 @@
 			}
 
 			//! @todo this looks ugly, refactor? maybe put in ajaxOpts as a callback function?
-			if ($('#'+id+'_relatedOnly').length && $('#'+id+'_relatedOnly').attr('checked')) {
+			if ($('#'+id+'_relatedOnly').length && $('#'+id+'_relatedOnly').prop('checked')) {
 				aoData.push({'name': 'relatedOnly', 'value': true});
 			}
 			// remove empty/unused options to make request smaller
@@ -314,7 +314,7 @@
 				$('#' + id + '-disconnect').val('').data('list', {});
 				$('#' + id + '-values').val('').data('list', {});
 
-				$('input.select-on-check-all').removeAttr('checked');
+				$('input.select-on-check-all').prop('checked', false);
 				$('input.select-on-check-all').prop('indeterminate', false);
 
 			}
@@ -522,7 +522,7 @@
 
 				var checkbox = $(target).closest('div.dropdown').find(':checkbox');
 				var name = checkbox.attr('name').replace('_all', '[]');
-				checkbox.attr('checked', check_all);
+				checkbox.prop('checked', check_all);
 				checkbox.prop('indeterminate', false);
 
 				$("input[name='"+name+"']").each(function() { //iterate through all rows (checkboxes)
@@ -536,7 +536,7 @@
 
 				var checkbox2 = $(target).closest('div.dropdown').find(':checkbox');
 				var name2 = checkbox2.attr('name').replace('_all', '[]');
-				checkbox2.attr('checked', check_page);
+				checkbox2.prop('checked', check_page);
 
 				$("input[name='"+name2+"']").each(function() { //iterate through all rows (checkboxes)
 					this.checked = check_page;
@@ -548,11 +548,11 @@
 				var $row = $(target).parent().parent();
 				if(settings.selectableRows == 1){
 					$row.siblings().removeClass('selected');
-					$("input:not(#"+target.id+")[name='"+target.name+"']").attr('checked',false);
+					$("input:not(#"+target.id+")[name='"+target.name+"']").prop('checked',false);
 //				} else {
 //					var is_all_checked = $("input.select-on-check").length==$("input.select-on-check:checked").length;
 //					$('#'+id+' .'+settings.tableClass+' > thead > tr > th >input.select-on-check-all')
-//						.attr('checked', is_all_checked);
+//						.prop('checked', is_all_checked);
 				}
 				$row.toggleClass('selected', target.checked);
 				$.fn.eDataTables.select(id, target);
@@ -564,13 +564,13 @@
 				var isRowSelected=$(target).toggleClass('selected').hasClass('selected');
 				$('input.select-on-check',target).each(function(){
 					if(settings.selectableRows == 1){
-						$("input[name='"+target.name+"']").attr('checked',false);
+						$("input[name='"+target.name+"']").prop('checked',false);
 					}
 
 					this.checked = isRowSelected;
 					var sboxallname = this.name.replace('[]', '_all');
 //					var is_all_checked = $("input[name='"+this.name+"']").length == $("input[name='"+this.name+"']:checked").length;
-//					$("input[name='"+sboxallname+"']").attr('checked', is_all_checked);
+//					$("input[name='"+sboxallname+"']").prop('checked', is_all_checked);
 					$.fn.eDataTables.select(id, this);
 				});
 			}
@@ -795,21 +795,21 @@
 		} else {
 			if (typeof list_selected[row_id] != 'undefined') {
 				// unsaved, previously added to selected
-				if ($(checkbox).attr('checked')) {
+				if ($(checkbox).prop('checked')) {
 					// not possible to select second time?
 				} else {
 					delete list_selected[row_id];
 				}
 			} else if (typeof list_disconnect[row_id] != 'undefined') {
 				// unsaved, previously removed from selected
-				if ($(checkbox).attr('checked')) {
+				if ($(checkbox).prop('checked')) {
 					delete list_disconnect[row_id];
 				} else {
 					// not possible to deselect second time?
 				}
 			} else {
 				// first change
-				if ($(checkbox).attr('checked') ) {
+				if ($(checkbox).prop('checked') ) {
 					list_selected[row_id] = row_id;
 				} else {
 					list_disconnect[row_id] = row_id;
@@ -836,7 +836,7 @@
 
 
 		$('#' + id + ' .select-on-check-all').prop('indeterminate', $('#' + id).eDataTables('isSomeSelected'));
-		$('#' + id + ' .select-on-check-all').attr('checked', $('#' + id).eDataTables('isAllSelected'));
+		$('#' + id + ' .select-on-check-all').prop('checked', $('#' + id).eDataTables('isAllSelected'));
 		return false;
 	};
 
