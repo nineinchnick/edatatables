@@ -107,8 +107,6 @@
 
 			settings.fnDrawCallback = $.fn.eDataTables.drawCallback;
 			$.fn.eDataTables.tables[id] = jQuery('#'+id+' table').dataTable(settings).fnSetFilteringDelay();
-			if (settings.bScrollCollapse)
-				$('#'+id+' .dataTables_wrapper').css({'min-height':'0px'});
 
 			// -----------------------
 			// configuration
