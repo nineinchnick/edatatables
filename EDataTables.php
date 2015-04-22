@@ -111,9 +111,6 @@ class EDataTables extends CGridView
 		// not done if options are passed through GET/POST
 		if (isset($this->options['bStateSave']) && $this->options['bStateSave']) {
 			self::restoreState($this->getId(), isset($this->options['sCookiePrefix']) ? $this->options['sCookiePrefix'] : 'edt_');
-		} else {
-			// probably disabled forever, must be called before preparing dataProvider anyway
-			//$this->restoreStateSessionInternal();
 		}
 		parent::init();
 		/**
@@ -144,14 +141,6 @@ class EDataTables extends CGridView
 				$_GET['iSortingCols']=$i;
 			}
 		}
-	}
-
-	protected function restoreStateSessionInternal() {
-		$sort = $this->dataProvider->getSort();
-		$pagination = $this->dataProvider->getPagination();
-		if (!($sort instanceof EDTSort) || !($pagination instanceof EDTPagination)) return;
-
-		self::restoreStateSession($this->getId(), $sort, $pagination);
 	}
 
 	public static function restoreStateSession($id, $sort, $pagination, &$columns) {
@@ -442,6 +431,7 @@ class EDataTables extends CGridView
 			'bPaginate'			=> true,
 			'sCookiePrefix'		=> 'edt_',
 			'relatedOnlyLabel'	=> Yii::t('EDataTables.edt', 'Only related'),
+			'columnsListLabel'	=> Yii::t('EDataTables.edt', 'Columns'),
 			'buttons'			=> $buttons,
 		);
 		if (Yii::app()->getLanguage() !== 'en_us') {

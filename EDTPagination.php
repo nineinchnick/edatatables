@@ -120,4 +120,27 @@ class EDTPagination extends CPagination
 	{
 		return (int)(($this->_itemCount+$this->_pageSize-1)/$this->_pageSize);
 	}
+
+    /**
+     * Creates the URL suitable for pagination.
+     * This method is mainly called by pagers when creating URLs used to
+     * perform pagination. The default implementation is to call
+     * the controller's createUrl method with the page information.
+     * You may override this method if your URL scheme is not the same as
+     * the one supported by the controller's createUrl method.
+     * @param CController $controller the controller that will create the actual URL
+     * @param integer $page the page that the URL should point to. This is a zero-based index.
+     * @return string the created URL
+     */
+    public function createPageUrl($controller, $page)
+    {
+        $params = $this->params === null ? $_GET : $this->params;
+        $params[$this->pageVar] = $page * $this->getPageSize(true);
+
+        if (isset($params[$this->lengthVar]) && $params[$this->lengthVar] === self::DEFAULT_PAGE_SIZE) {
+            unset($params[$this->lengthVar]);
+        }
+
+        return $controller->createUrl($this->route, $params);
+    }
 }

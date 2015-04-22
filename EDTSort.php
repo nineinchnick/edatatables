@@ -21,7 +21,7 @@ class EDTSort extends CSort
 	 * @var boolean whether the sorting can be applied to multiple attributes simultaneously.
 	 * Defaults to false, which means each time the data can only be sorted by one attribute.
 	 */
-	public $multiSort=true;
+	public $multiSort = true;
 
 	/**
 	 * @var array
@@ -100,4 +100,74 @@ class EDTSort extends CSort
 		}
 		return $this->_directions;
 	}
+
+    /**
+     * Creates a URL that can lead to generating sorted data.
+     *
+     * @param CController $controller the controller that will be used to create the URL.
+     * @param array $directions the sort directions indexed by attribute names.
+     * The sort direction can be either CSort::SORT_ASC for ascending order or
+     * CSort::SORT_DESC for descending order.
+     * @return string the URL for sorting
+     */
+    public function createUrl($controller, $directions)
+    {
+        $params = $this->params === null ? $_GET : $this->params;
+
+        $columns = is_array($this->columns) ? array_values($this->columns) : $this->columns;
+        if (empty($columns)) return $controller->createUrl($this->route);
+        $i = 0;
+        foreach ($params as $key => $val) {
+            if (strpos($key, $this->sortVarIdxPrefix) === false && strpos($key, $this->sortVarDirPrefix) === false)
+                continue;
+
+            unset($params[$key]);
+        }
+        unset($params[$this->sortVar]);
+
+        foreach ($columns as $key => $column) {
+            if (!is_string($column) && !isset($column['name']))
+                continue;
+
+            $attribute = null;
+            if (is_string($column)) {
+                $columnConfig = explode(':',$column);
+                if (!isset($columnConfig[0]))
+                    continue;
+
+                $attribute = $columnConfig[0];
+            } else {
+                $attribute = $column['name'];
+            }
+
+            if ($attribute === null || !isset($directions[$attribute]))
+                continue;
+
+            /** Check if we need to disable sorting for this column */
+            $currentDirection = false;
+            foreach ($_GET as $k => $v) {
+                if (strpos($k, $this->sortVarIdxPrefix) === false || intval($v) !== $key)
+                    continue;
+
+                $index = intval(substr($k, strlen($this->sortVarIdxPrefix)));
+                $currentDirection = isset($_GET[$this->sortVarDirPrefix.$index]) && $_GET[$this->sortVarDirPrefix.$index] == "desc";
+                break;
+            }
+
+            /** Do not sort at all by this column when current direction (in $_GET) is different than one set in $directions */
+            if ($currentDirection && $currentDirection != $directions[$attribute])
+                continue;
+
+            $params[$this->sortVarIdxPrefix.$i] = $key;
+            if ($directions[$attribute])
+                $params[$this->sortVarDirPrefix.$i] = 'desc';
+            $i++;
+
+            if (!$this->multiSort)
+                break;
+        }
+
+        $params[$this->sortVar] = $i;
+        return $controller->createUrl($this->route, $params);
+    }
 }
