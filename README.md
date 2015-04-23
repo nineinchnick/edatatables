@@ -126,7 +126,6 @@ Since the _bootstrap_ attribute has been removed, please use the following confi
     'cssFiles' => array('bootstrap.dataTables.css'),
     'jsFiles' => array(
         'bootstrap.dataTables.js',
-        'jquery.fnSetFilteringDelay.js',
         'jdatatable.js' => CClientScript::POS_END,
     ),
 ),

@@ -113,7 +113,6 @@ class EDataTables extends CGridView
      * value must be one of CClientScript::POS_* constants.
      */
     public $jsFiles = array(
-        'jquery.fnSetFilteringDelay.js',
         'jdatatable.js' => CClientScript::POS_END,
     );
 

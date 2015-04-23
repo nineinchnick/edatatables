@@ -106,7 +106,7 @@
 			}
 
 			settings.fnDrawCallback = $.fn.eDataTables.drawCallback;
-			$.fn.eDataTables.tables[id] = jQuery('#'+id+' table').dataTable(settings).fnSetFilteringDelay();
+			$.fn.eDataTables.tables[id] = jQuery('#'+id+' table').DataTable(settings);
 
 			// -----------------------
 			// configuration
