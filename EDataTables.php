@@ -61,13 +61,13 @@ class EDataTables extends CGridView
     /**
      * Contains keys:
      * 'all-selected' - empty string (defalut) or one of:
-     *		'select'	- select all records except 'deselected' and 'disconnect'
-     *		'deselect'	- deselect all records except 'selected'
-     * 'selected'	- comma separated string with selected ids (empty if 'all-selected' == 'select')
-     * 'deselected' - comma separated string with deselected ids (empty if 'all-selected' != 'select')
-     *				contains ids which WASN'T initially selected (before eDataTables instance initialized)
-     * 'disconnect' - comma separated string with deselected ids (empty if 'all-selected' != 'select')
-     *				contains ids which WAS initially selected (before eDataTables instance initialized).
+     * 'select'       - select all records except 'deselected' and 'disconnect'
+     * 'deselect'     - deselect all records except 'selected'
+     * 'selected'     - comma separated string with selected ids (empty if 'all-selected' == 'select')
+     * 'deselected'   - comma separated string with deselected ids (empty if 'all-selected' != 'select')
+     *                  contains ids which WASN'T initially selected (before eDataTables instance initialized)
+     * 'disconnect'   - comma separated string with deselected ids (empty if 'all-selected' != 'select')
+     *                  contains ids which WAS initially selected (before eDataTables instance initialized).
      *
      * @var array Array of unsaved changes, must be filled when redrawing a form
      * containing this control after an unsuccessful save (failed validation).
@@ -183,9 +183,9 @@ class EDataTables extends CGridView
         if (isset($_GET[$sort->sortVar]) && ($iSortingCols = intval($_GET[$sort->sortVar])) > 0) {
             // save state
             $sortParams = array(
-                'count' => $iSortingCols,
+                'count'   => $iSortingCols,
                 'indexes' => array(),
-                'dirs' => array(),
+                'dirs'    => array(),
             );
             for ($i = 0; $i < $iSortingCols && isset($_GET[$sort->sortVarIdxPrefix.$i]); ++$i) {
                 $sortParams['indexes'][$sort->sortVarIdxPrefix.$i] = $_GET[$sort->sortVarIdxPrefix.$i];
@@ -209,7 +209,7 @@ class EDataTables extends CGridView
             // save state
             $session[$id]['pagination'] = array(
                 'length' => $_GET[$pagination->lengthVar],
-                'page' => $_GET[$pagination->pageVar],
+                'page'   => $_GET[$pagination->pageVar],
             );
         } elseif (isset($session[$id]) && isset($session[$id]['pagination'])) {
             // restore state
@@ -303,7 +303,7 @@ class EDataTables extends CGridView
             if (isset($column->type) && in_array($column->type, $numericTypes)) {
                 // all numeric types gets aligned right by default
                 //if (!isset($column->headerHtmlOptions['class']))
-                //	$column->headerHtmlOptions['class'] = 'text-right';
+                // $column->headerHtmlOptions['class'] = 'text-right';
                 if (!isset($column->htmlOptions['class'])) {
                     $column->htmlOptions['class'] = 'text-right';
                 }
@@ -376,8 +376,8 @@ function(oObj) {
 }
 JavaScript;
             $columnDefs[] = array(
-                'fnRender'    => "js:$script",
-                'aTargets'    => $this->editableColumns,
+                'fnRender' => "js:$script",
+                'aTargets' => $this->editableColumns,
             );
         }
         $sort = $this->dataProvider->getSort();
@@ -398,7 +398,7 @@ JavaScript;
             $hasName = property_exists($column, 'name') && trim($column->name) !== '';
             $sName = $hasName ? $column->name : 'unnamed'.$i;
             $columnDefs[] = array(
-                'sName' => $sName,
+                'sName'    => $sName,
                 'aTargets' => array($i),
             );
             if (!$column->visible) {
@@ -442,13 +442,13 @@ JavaScript;
         if (!empty($nonsortableColumns)) {
             $columnDefs[] = array(
                 'bSortable' => false,
-                'aTargets' => $nonsortableColumns,
+                'aTargets'  => $nonsortableColumns,
             );
         }
         if (!empty($cssClasses)) {
             foreach ($cssClasses as $cssClass => $targets) {
                 $columnDefs[] = array(
-                    'sClass' => $cssClass,
+                    'sClass'   => $cssClass,
                     'aTargets' => $targets,
                 );
             }
@@ -471,12 +471,12 @@ JavaScript;
 
         return array_merge(array(
             'refresh' => array(
-                'tagName' => 'button',
-                'label' => Yii::t('EDataTables.edt', 'Refresh'),
+                'tagName'   => 'button',
+                'label'     => Yii::t('EDataTables.edt', 'Refresh'),
                 'htmlClass' => '',
-                'text' => false,
-                'icon' => 'ui-icon-refresh',
-                'callback' => 'js:function(e){e.data.that.eDataTables("refresh"); return false;}',
+                'text'      => false,
+                'icon'      => 'ui-icon-refresh',
+                'callback'  => 'js:function(e){e.data.that.eDataTables("refresh"); return false;}',
             ),
         ), $this->buttons);
     }
@@ -529,27 +529,27 @@ JavaScript;
             // we don't need to set them if app language is already en_us
             $oLanguage = array(
                 'oAria' => array(
-                    'sSortAscending' => Yii::t('EDataTables.edt', ': activate to sort column ascending'),
+                    'sSortAscending'  => Yii::t('EDataTables.edt', ': activate to sort column ascending'),
                     'sSortDescending' => Yii::t('EDataTables.edt', ': activate to sort column descending'),
                 ),
                 'oPaginate' => array(
-                    'sFirst' => Yii::t('EDataTables.edt', 'First'),
-                    'sLast' => Yii::t('EDataTables.edt', 'Last'),
-                    'sNext' => Yii::t('EDataTables.edt', 'Next'),
+                    'sFirst'    => Yii::t('EDataTables.edt', 'First'),
+                    'sLast'     => Yii::t('EDataTables.edt', 'Last'),
+                    'sNext'     => Yii::t('EDataTables.edt', 'Next'),
                     'sPrevious' => Yii::t('EDataTables.edt', 'Previous'),
                 ),
-                'sEmptyTable' => Yii::t('EDataTables.edt', 'No data available in table'),
-                'sInfo' => Yii::t('EDataTables.edt', 'Showing _START_ to _END_ of _TOTAL_ entries'),
-                'sInfoEmpty' => Yii::t('EDataTables.edt', 'Showing 0 to 0 of 0 entries'),
-                'sInfoFiltered' => Yii::t('EDataTables.edt', '(filtered from _MAX_ total entries)'),
-                //"sInfoPostFix" => "",
+                'sEmptyTable'      => Yii::t('EDataTables.edt', 'No data available in table'),
+                'sInfo'            => Yii::t('EDataTables.edt', 'Showing _START_ to _END_ of _TOTAL_ entries'),
+                'sInfoEmpty'       => Yii::t('EDataTables.edt', 'Showing 0 to 0 of 0 entries'),
+                'sInfoFiltered'    => Yii::t('EDataTables.edt', '(filtered from _MAX_ total entries)'),
+                //"sInfoPostFix"   => "",
                 //"sInfoThousands" => ",",
-                'sLengthMenu' => Yii::t('EDataTables.edt', 'Show _MENU_ entries'),
-                'sLoadingRecords' => Yii::t('EDataTables.edt', 'Loading...'),
-                'sProcessing' => Yii::t('EDataTables.edt', 'Processing...'),
-                'sSearch' => Yii::t('EDataTables.edt', 'Search:'),
-                //"sUrl" => "",
-                'sZeroRecords' => Yii::t('EDataTables.edt', 'No matching records found'),
+                'sLengthMenu'      => Yii::t('EDataTables.edt', 'Show _MENU_ entries'),
+                'sLoadingRecords'  => Yii::t('EDataTables.edt', 'Loading...'),
+                'sProcessing'      => Yii::t('EDataTables.edt', 'Processing...'),
+                'sSearch'          => Yii::t('EDataTables.edt', 'Search:'),
+                //"sUrl"           => "",
+                'sZeroRecords'     => Yii::t('EDataTables.edt', 'No matching records found'),
             );
             $localeSettings = localeconv();
             if (!empty($localeSettings['decimal_point'])) {
@@ -602,7 +602,7 @@ JavaScript;
             $options['configurable'] = true;
             // block draggable column headers
             $options['oColReorder'] = array(
-                //'iFixedColumns' => count($this->columns)
+                //'iFixedColumns'   => count($this->columns)
                 'fnReorderCallback' => "js:function(){\$('#{$id}').eDataTables('refresh');}",
             );
             $options['sDom'] .= 'R';
@@ -617,10 +617,10 @@ JavaScript;
         $ud = trim($this->unsavedChanges['disconnect'], ',');
         $options['unsavedChanges'] = array(
             'all_selected' => $this->unsavedChanges['all-selected'],
-            'selected' => !empty($us) ? array_fill_keys(explode(',', $us), true) : array(),
-            'deselected' => !empty($udeselected) ? array_fill_keys(explode(',', $udeselected), true) : array(),
-            'disconnect' => !empty($ud) ? array_fill_keys(explode(',', $ud), true) : array(),
-            'values' => $values,
+            'selected'     => !empty($us) ? array_fill_keys(explode(',', $us), true) : array(),
+            'deselected'   => !empty($udeselected) ? array_fill_keys(explode(',', $udeselected), true) : array(),
+            'disconnect'   => !empty($ud) ? array_fill_keys(explode(',', $ud), true) : array(),
+            'values'       => $values,
         );
 
         if (isset($options['fnServerParams'])) {
@@ -638,19 +638,21 @@ JavaScript;
 
     public static function initClientScript($cssFiles, $jsFiles, $configurable = false, $registerJUI = true)
     {
-        $baseScriptUrl = Yii::app()->getAssetManager()->publish(dirname(__FILE__).DIRECTORY_SEPARATOR.'assets');
+        $ds = DIRECTORY_SEPARATOR;
+        $baseScriptUrl = Yii::app()->getAssetManager()->publish(dirname(__FILE__).$ds.'assets');
+        $vendorScriptUrl = Yii::app()->getAssetManager()->publish(dirname(__FILE__)."{$ds}..{$ds}..{$ds}datatables{$ds}datatables{$ds}media");
 
         $cs = Yii::app()->getClientScript();
         $cs->registerCoreScript('jquery');
         foreach ($cssFiles as $cssFile) {
             $cs->registerCssFile((strpos($cssFile, '/') === false ? $baseScriptUrl.'/css/' : '').$cssFile);
         }
-        $cs->registerScriptFile($baseScriptUrl.'/js/jquery.dataTables'.(YII_DEBUG ? '' : '.min').'.js');
+        $cs->registerScriptFile($vendorScriptUrl.'/js/jquery.dataTables'.(YII_DEBUG ? '' : '.min').'.js');
         if ($configurable || $registerJUI) {
             $cs->registerCoreScript('jquery.ui');
         }
         if ($configurable) {
-            $cs->registerScriptFile($baseScriptUrl.'/js/ColReorder'.(YII_DEBUG ? '' : '.min').'.js');
+            $cs->registerScriptFile($baseScriptUrl.'/js/dataTables.colReorder'.(YII_DEBUG ? '' : '.min').'.js');
         }
         foreach ($jsFiles as $key => $value) {
             if (is_numeric($key)) {
