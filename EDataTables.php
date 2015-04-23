@@ -512,7 +512,7 @@ JavaScript;
             'editableSelectsRow'=> $this->editableSelectsRow,
             // dataTables options
             'asStripClasses'    => $this->rowCssClass,
-            'iDeferLoading'     => $this->dataProvider->getTotalItemCount(),
+            'deferLoading'     => ($totalCount = $this->dataProvider->getTotalItemCount()) ? $totalCount : false,
             'sAjaxSource'       => CHtml::normalizeUrl($this->ajaxUrl),
             'aoColumnDefs'      => $columnDefs,
             'bScrollCollapse'   => false,
